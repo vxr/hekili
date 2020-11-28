@@ -1037,6 +1037,8 @@ local COMBAT_RESUME_TIME = 5
 RegisterEvent( "PLAYER_REGEN_DISABLED", function( event )
     local t = GetTime()
 
+    state.combat_started = t
+
     if t - combat_ended <= COMBAT_RESUME_TIME then
         state.combat = last_combat
     else
@@ -1058,6 +1060,7 @@ RegisterEvent( "PLAYER_REGEN_ENABLED", function ()
     combat_ended = GetTime()
 
     state.combat = 0
+    state.combat_ended = combat_ended
 
     state.swings.mh_actual = 0
     state.swings.oh_actual = 0
@@ -1167,7 +1170,7 @@ do
                 if t and t ~= "" then text = t end
             end )
         end
-    end ) ]]
+    end )
 
     function Hekili:GetMacroCastTarget( spell, castTime, source )
         local ability = class.abilities[ spell ]
@@ -1799,6 +1802,7 @@ local function CLEU_HANDLER( event, timestamp, subtype, hideCaster, sourceGUID, 
                     state:RemoveSpellEvent( ability.key, true, "CAST_FINISH" ) -- remove next cast finish.
                     if ability.isProjectile then state:RemoveSpellEvent( ability.key, true, "PROJECTILE_IMPACT", true ) end -- remove last impact.
                     -- Hekili:ForceUpdate( "SPELL_CAST_FAILED" )
+                    ability.lastFailure = time
 
                 elseif subtype == "SPELL_AURA_REMOVED" and ability.channeled then
                     state:RemoveSpellEvents( ability.key, true ) -- remove ticks, finish, impacts.
@@ -2016,11 +2020,44 @@ local itemToAbility = {
 
 local function StoreKeybindInfo( page, key, aType, id, console )
 
-    if not key or not aType or not id then return end
+    if not key or not aType or id == nil then return end
 
     local action, ability
+    --local macroName
 
-    if aType == "item" then
+    if aType == "spell" then
+        if id == 0 and console == "pet" then
+            ability = class.abilities["pet_attack"]
+        else
+            ability = class.abilities[ id ]
+        end
+        action = ability and ability.key
+
+    --elseif aType == "macro" then
+    --    local sID = GetMacroSpell( id ) or GetMacroItem( id )
+    --    macroName, _, _ = GetMacroInfo( id )
+    --    ability = sID and class.abilities[ sID ]
+    --    action = ability and ability.key
+    --
+    --        -- Logging to the default chat frame
+    --    DEFAULT_CHAT_FRAME:AddMessage("********************")
+    --    DEFAULT_CHAT_FRAME:AddMessage("Macro Analysis:")
+    --    DEFAULT_CHAT_FRAME:AddMessage("Macro ID: " .. tostring(id))
+    --    DEFAULT_CHAT_FRAME:AddMessage("Spell or Item ID: " .. tostring(sID))
+    --    DEFAULT_CHAT_FRAME:AddMessage("Macro Name: " .. tostring(macroName))
+    --    if ability then
+    --        DEFAULT_CHAT_FRAME:AddMessage("Ability Found: " .. tostring(ability.name))
+    --        DEFAULT_CHAT_FRAME:AddMessage("Ability Key: " .. tostring(ability.key))
+    --    else
+    --        DEFAULT_CHAT_FRAME:AddMessage("No ability found for the provided ID.")
+    --    end
+    --    if action then
+    --        DEFAULT_CHAT_FRAME:AddMessage("Action: " .. tostring(action))
+    --    else
+    --        DEFAULT_CHAT_FRAME:AddMessage("No action found for the ability.")
+    --    end
+
+    elseif aType == "item" then
         local item, link = CGetItemInfo( id )
         ability = item and ( class.abilities[ item ] or class.abilities[ link ] )
         action = ability and ability.key

@@ -9796,6 +9796,9 @@ function Hekili:GenerateProfile()
     local bindLength = 1
 
     for name in pairs( Hekili.KeybindInfo ) do
+        if type(name) == "number" then
+            name = tostring(name)
+        end
         if name:len() > bindLength then
             bindLength = name:len()
         end

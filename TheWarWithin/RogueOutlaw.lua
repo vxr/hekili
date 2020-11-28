@@ -217,6 +217,13 @@ spec:RegisterAuras( {
         duration = 3600,
         max_stack = 1
     },
+    -- Talent: Damage taken from area-of-effect attacks reduced by $s1%$?$w2!=0[ and all other damage taken reduced by $w2%.  ][.]
+    -- https://wowhead.com/beta/spell=1966
+    feint = {
+        id = 1966,
+        duration = 6,
+        max_stack = 1
+    },
     -- Talent: Damage reduced by ${$W1*-1}.1%.
     -- https://wowhead.com/beta/spell=392388
     atrophic_poison_dot = {
@@ -964,6 +971,112 @@ spec:RegisterAbilities( {
         end,
     },
 
+    -- Talent: Provides a moment of magic immunity, instantly removing all harmful spell effects. The cloak lingers, causing you to resist harmful spells for $d.
+    cloak_of_shadows = {
+        id = 31224,
+        cast = 0,
+        cooldown = 120,
+        gcd = "off",
+
+        talent = "cloak_of_shadows",
+        startsCombat = false,
+
+        toggle = "interrupts",
+
+        --buff = function ()
+        --    if debuff.burst.up then
+        --        return "burst"
+        --    end
+        --    return "dispellable_magic"
+        --end,
+
+        usable = function()
+            return buff.dispellable_magic.up or debuff.burst.up
+        end,
+
+        handler = function ()
+            removeBuff( "dispellable_magic" )
+            removeBuff( "burst" ) -- seasonal affix
+            applyBuff( "cloak_of_shadows" )
+        end,
+    },
+
+    -- Drink an alchemical concoction that heals you for $?a354425&a193546[${$O1}.1][$o1]% of your maximum health over $d.
+    crimson_vial = {
+        id = 185311,
+        cast = 0,
+        cooldown = 30,
+        gcd = "totem",
+        school = "nature",
+
+        spend = function () return 20 - ( 10 * talent.nimble_fingers.rank ) + conduit.nimble_fingers.mod end,
+        spendType = "energy",
+
+        startsCombat = false,
+        texture = 1373904,
+
+        handler = function ()
+            applyBuff( "crimson_vial" )
+        end,
+    },
+
+
+    -- Talent: Increases your dodge chance by ${$s1/2}% for $d.$?a344363[ Dodging an attack while Evasion is active will trigger Mastery: Main Gauche.][]
+    evasion = {
+        id = 5277,
+        cast = 0,
+        cooldown = 120,
+        gcd = "off",
+        school = "physical",
+
+        talent = "evasion",
+        startsCombat = false,
+
+        toggle = "defensives",
+
+        handler = function ()
+            applyBuff( "evasion" )
+        end,
+    },
+
+    -- Talent: Redirects all threat you cause to the targeted party or raid member, beginning with your next damaging attack within the next 30 sec and lasting 6 sec.
+    tricks_of_the_trade = {
+        id = 57934,
+        cast = 0,
+        cooldown = 30,
+        gcd = "off",
+
+        talent = "tricks_of_the_trade",
+        startsCombat = false,
+
+        usable = function() return group, "requires an ally" end,
+
+        handler = function ()
+            applyBuff( "tricks_of_the_trade" )
+        end,
+    },
+
+    -- Talent: Performs an evasive maneuver, reducing damage taken from area-of-effect attacks by $s1% $?s79008[and all other damage taken by $s2% ][]for $d.
+    feint = {
+        id = 1966,
+        cast = 0,
+        cooldown = function() return 15 * ( pvptalent.thiefs_bargain.enabled and 0.667 or 1 ) end,
+        charges = function() return talent.graceful_guile.enabled and 2 or nil end,
+        recharge = function() return talent.graceful_guile.enabled and ( 15 * ( pvptalent.thiefs_bargain.enabled and 0.667 or 1 ) ) or nil end,
+        gcd = "totem",
+        school = "physical",
+
+        spend = function () return talent.nimble_fingers.enabled and 25 or 35 + conduit.nimble_fingers.mod end,
+        spendType = "energy",
+
+        startsCombat = false,
+        texture = 132294,
+
+        handler = function ()
+            applyBuff( "feint" )
+        end,
+    },
+
     -- Finishing move that deals damage with your pistol, increasing your critical strike chance by $s2%.$?a235484[ Critical strikes with this ability deal four times normal damage.][];    1 point : ${$<damage>*1} damage, 3 sec;    2 points: ${$<damage>*2} damage, 6 sec;    3 points: ${$<damage>*3} damage, 9 sec;    4 points: ${$<damage>*4} damage, 12 sec;    5 points: ${$<damage>*5} damage, 15 sec$?s193531|((s394320|s394321)&!s193531)[;    6 points: ${$<damage>*6} damage, 18 sec][]$?s193531&(s394320|s394321)[;    7 points: ${$<damage>*7} damage, 21 sec][]
     between_the_eyes = {
         id = 315341,
@@ -1431,6 +1544,16 @@ spec:RegisterOptions( {
 
     package = "Outlaw",
 } )
+
+spec:RegisterSetting( "clear_burst" , 5, {
+    name = strformat("Use %s to clear %s stacks at or above this value.", Hekili:GetSpellLinkWithTexture(31224), Hekili:GetSpellLinkWithTexture(243237)),
+    desc = "Set to 0 to disable.",
+    type = "range",
+    min = 0,
+    max = 10,
+    step = 1,
+    width = "full",
+})
 
 
 --[[ Retired 12/21/23:

@@ -1913,6 +1913,10 @@ spec:RegisterAbilities( {
 
         startsCombat = false,
 
+        usable = function ()
+            return target.exists, "target must exist"
+        end,
+
         handler = function ()
             applyDebuff( "target", "hunters_mark" )
         end,
@@ -2287,6 +2291,32 @@ spec:RegisterAbilities( {
 
         handler = function ()
             summonPet( "made_up_pet", 3600, "ferocity" )
+        end,
+    },
+
+    pet_attack = {
+        id = 287988,  -- this isn't correct, it's actually spell id 0, but it's close enough
+        cast = 0,
+        cooldown = 0,
+        gcd = "off",
+        startsCombat = true,
+        use_while_casting = true,
+        usable = function () return pet.exists, "requires a pet" end,
+        known = function () return true end,
+    },
+
+    revive_pet = {
+        id = 982,
+        cast = 1.5,
+        cooldown = 0,
+        gcd = "spell",
+        spend = 35,
+        spendType = "focus",
+        startsCombat = false,
+        essential = true,
+        usable = function () return not pet.exists, "requires no active pet" end,
+        handler = function ()
+            summonPet( "made_up_pet", 3600, "ferocity")
         end,
     },
 

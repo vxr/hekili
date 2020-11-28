@@ -867,6 +867,13 @@ spec:RegisterAuras( {
         duration = 10,
         max_stack = 1
     },
+    -- Talent: Movement speed increased by $s1%.
+    -- https://wowhead.com/beta/spell=111400
+    burning_rush = {
+        id = 111400,
+        duration = 3600,
+        max_stack = 1
+    },
     -- Talent: Healing $w1 every $t sec.
     -- https://wowhead.com/beta/spell=386614
     accrued_vitality = {
@@ -1210,6 +1217,15 @@ spec:RegisterAuras( {
     lifeblood = {
         id = 386647,
         duration = 20,
+        max_stack = 1
+    },
+    -- Transferring health.
+    -- https://wowhead.com/beta/spell=755
+    health_funnel = {
+        id = 755,
+        duration = 5,
+        tick_time = 1,
+        type = "Magic",
         max_stack = 1
     },
     -- Talent: Incapacitated.
@@ -1650,6 +1666,17 @@ spec:RegisterAbilities( {
             interrupt()
             applyDebuff( "target", "axe_toss", 4 )
         end,
+    },
+
+    pet_attack = {
+        id = 287988,  -- this isn't correct, it's actually spell id 0, but it's close enough
+        cast = 0,
+        cooldown = 0,
+        gcd = "off",
+        startsCombat = true,
+        use_while_casting = true,
+        usable = function () return pet.exists, "requires a pet" end,
+        known = function () return true end,
     },
 
     -- Talent: Tear open a portal to the nether above the target location, from which several Bilescourge will pour out of and crash into the ground over 6 sec, dealing 1,179 Shadow damage to all enemies within 8 yards.
@@ -2147,7 +2174,7 @@ spec:RegisterAbilities( {
         bind = "summon_pet",
         nomounted = true,
 
-        usable = function () return not pet.exists, "cannot have an existing pet" end,
+        usable = function () return not pet_alive, "cannot have an existing pet" end,
         handler = function ()
             removeBuff( "fel_domination" )
             summonPet( "felguard", 3600 )

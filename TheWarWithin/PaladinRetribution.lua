@@ -1749,6 +1749,8 @@ spec:RegisterAbilities( {
 
         startsCombat = false,
 
+        toggle = "cooldowns",
+
         handler = function ()
             applyDebuff( "target", "hammer_of_justice" )
         end,

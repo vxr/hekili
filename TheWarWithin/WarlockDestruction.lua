@@ -1279,6 +1279,7 @@ spec:RegisterCycle( function ()
     if this_action == "havoc" and class.abilities.havoc.key == "havoc" then return "cycle" end
 
     if ( debuff.havoc.up or FindUnitDebuffByID( "target", 80240, "PLAYER" ) ) and not legendary.odr_shawl_of_the_ymirjar.enabled then
+        --print( "Cycle for", state.this_action )
         return "cycle"
     end
 end )
@@ -1353,6 +1354,92 @@ spec:RegisterAbilities( {
             active_dot[ applies ] = max( active_dot[ applies ], true_active_enemies )
             removeDebuff( "target", "combusting_engine" )
         end,
+    },
+
+    pet_attack = {
+        id = 287988,  -- this isn't correct, it's actually spell id 0, but it's close enough
+        cast = 0,
+        cooldown = 0,
+        gcd = "off",
+        startsCombat = true,
+        use_while_casting = true,
+        usable = function () return pet.exists, "requires a pet" end,
+        known = function () return true end,
+    },
+
+    devour_magic = {
+        id = 19505,
+        cast = 0,
+        cooldown = 15,
+        gcd = "off",
+
+        spend = 0,
+        spendType = "mana",
+
+        startsCombat = true,
+        toggle = "interrupts",
+        use_while_casting = true,
+        use_off_gcd = true,
+
+        usable = function ()
+            if buff.dispellable_magic.down then return false, "no dispellable magic aura" end
+            return true
+        end,
+
+        handler = function()
+            removeBuff( "dispellable_magic" )
+        end,
+    },
+
+    -- Talent: Increases your movement speed by 50%, but also damages you for 4% of your maximum health every 1 sec. Movement impairing effects may not reduce you below 100% of normal movement speed. Lasts until canceled.
+    burning_rush = {
+        id = 111400,
+        cast = 0,
+        cooldown = 0,
+        gcd = function ()
+            if buff.burning_rush.up then return "off" end
+            return "spell"
+        end,
+        school = "physical",
+
+        talent = "burning_rush",
+        startsCombat = false,
+
+        use_while_casting = function ()
+            if buff.burning_rush.up then return true end
+            return false
+        end,
+
+        handler = function ()
+            if buff.burning_rush.up then removeBuff( "burning_rush" )
+            else applyBuff( "burning_rush" ) end
+        end,
+    },
+
+    spell_lock = {
+        id = 19647,
+        known = function () return IsSpellKnownOrOverridesKnown( 119910 ) or IsSpellKnownOrOverridesKnown( 132409 ) end,
+        cast = 0,
+        cooldown = 24,
+        gcd = "off",
+
+        startsCombat = true,
+        -- texture = ?
+
+        toggle = "interrupts",
+        interrupt = true,
+
+        debuff = "casting",
+        readyTime = state.timeToInterrupt,
+
+        use_while_casting = true,
+        use_off_gcd = true,
+
+        handler = function ()
+            interrupt()
+        end,
+
+        bind = { 119910, 132409, 119898 }
     },
 
     -- Launches $s1 bolts of felfire over $d at random targets afflicted by your $?a445465[Wither][Immolate] within $196449A1 yds. Each bolt deals $196448s1 Fire damage to the target and $196448s2 Fire damage to nearby enemies.

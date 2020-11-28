@@ -1720,6 +1720,9 @@ spec:RegisterAbilities( {
         talent = "storm_bolt",
         startsCombat = true,
 
+        toggle = "interrupts",
+        readyTime = state.timeToInterrupt,
+
         handler = function ()
             applyDebuff( "target", "storm_bolt" )
         end,

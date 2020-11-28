@@ -2015,7 +2015,11 @@ all:RegisterAbilities( {
                 duration = 3,
                 max_stack = 1
             }
-        }
+        },
+
+        usable = function()
+            return IsActionInRange(71)
+        end,
     },
 
     belorrelos_the_suncaller = {

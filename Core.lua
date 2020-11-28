@@ -757,6 +757,13 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
                 elseif rWait <= state.cooldown.global_cooldown.remains and not state.spec.can_dual_cast and ability.gcd ~= "off" then
                     if debug then self:Debug( "Only off-GCD abilities would be usable before the currently selected ability; skipping..." ) end
 
+                elseif GetUnitSpeed("player") > 0 and ability.cast > 0 and not (ability.cast_while_moving or (class.auras["hover"] and state.buff.hover.up and not ability.empowered)) then
+                    -- bussy cant cast while moving
+
+                elseif state.class.file == "DEMONHUNTER" and state.channeling and state.settings.dont_interrupt_eyebeam then
+                    -- workaround for eyebeam canceling early on demon hunter
+                    -- might be a shit idea if there are other channels, I dunno.
+
                 else
                     local entryReplaced = false
 
@@ -1571,6 +1578,18 @@ function Hekili.Update( initial )
                 numRecs = 1
             end
 
+            if dispName == "Primary" then
+                state.bussy.ts = (state.now * 100) % 0x10000
+                if UnitAffectingCombat("player") and (not UnitExists("target") or UnitIsFriend("player", "target")) then
+                    state.bussy.flags = "t"
+                else
+                    state.bussy.flags = ""
+                end
+            end
+
+            local bussy_first_rec = nil
+            local bussy_all_same = true
+
             for i = 1, numRecs do
                 local chosen_depth = 0
 
@@ -1979,6 +1998,53 @@ function Hekili.Update( initial )
                         end
                     end
 
+                    -- bussy
+                    if i == 1 then
+                        local this_slot_time = slot.time
+                        local slot_flags = ""
+                        if this_slot_time == 0 or (class.abilities[action].gcd == "off"  and not class.abilities[action].empowered) then
+                            this_slot_time = ""
+                        else
+                            this_slot_time = string.format("%x", this_slot_time * 100)
+                        end
+
+                        if slot.actionName == state.empowerment.spell and slot.wait > 0 then
+                            this_slot_time = string.format("%x", slot.wait * 100)
+                            slot_flags = "h"
+                        end
+
+                        if slot.indicator == "cycle" then
+                            slot_flags = "c"
+                        elseif (state.bg or state.arena) and state.target.exists then
+                            local out_of_range = state.target.outside40
+                            if class.abilities['sniper_shot'] ~= nil and class.abilities['sniper_shot'].known then
+                                out_of_range = state.target.outside62
+                            elseif state.class.file == "HUNTER" then
+                                out_of_range = state.target.outside45
+                            end
+                            -- pvp convenience, cycle to new target when one goes out of range
+                            if out_of_range then
+                                slot_flags = "c"
+                            end
+                        elseif state.time > 3 and not state.solo and not state.target.affecting_combat then
+                            -- slot_flags = "c"
+                        end
+                        if dispName == "Primary" then
+                            state.bussy.st = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
+                        elseif dispName == "AOE" then
+                            -- print(slot.script .. slot.actionName)
+                            state.bussy.aoe = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
+                        end
+                        if state.bussy.flags == "" and class.abilities[action].startsCombat and (not UnitExists("target") or UnitIsFriend("player", "target")) then
+                            state.bussy.flags = "t"
+                        end
+                        bussy_first_rec = slot.script .. slot.actionName
+                    else
+                        if (slot.script .. slot.actionName) ~= bussy_first_rec then
+                            bussy_all_same = false
+                        end
+                    end
+
                 else
                     for s = i, numRecs do
                         action = action or ''
@@ -2049,6 +2115,19 @@ function Hekili.Update( initial )
                 end
 
                 WeakAuras.ScanEvents( "HEKILI_RECOMMENDATION_UPDATE", dispName, Queue[ 1 ].actionID, Queue[ 1 ].indicator, Queue[ 1 ].empower_to, UI.EventPayload )
+            end
+
+            if dispName == "AOE" and bussy_all_same then
+                --state.bussy.aoe = state.bussy.aoe .. "c"
+            -- elseif dispName == "Primary" and bussy_all_same then
+            -- 	state.bussy.st = state.bussy.st .. "c"
+            end
+
+            if dispName == "AOE" or Hekili.DB.profile.toggles.mode.value == "automatic" then
+                render_bussy(state.bussy)
+                state.bussy.st = "::"
+                state.bussy.aoe = "::"
+                state.bussy.flags = ""
             end
 
             if debug then

@@ -40,6 +40,21 @@ local Mark, SuperMark, ClearMarks = ns.Mark, ns.SuperMark, ns.ClearMarks
 local RC = LibStub( "LibRangeCheck-3.0" )
 local LSR = LibStub( "SpellRange-1.0" )
 
+local npmod = nil
+if _G["ElvUI"] then
+    npmod = _G["ElvUI"][1]:GetModule('NamePlates')
+end
+
+local healerSpecIDs = {
+    [65] = true,     --Paladin Holy
+    [105] = true,    --Druid Restoration
+    [256] = true,    --Priest Discipline
+    [257] = true,    --Priest Holy
+    [264] = true,    --Shaman Restoration
+    [270] = true,    --Monk Mistweaver
+}
+
+
 local class = Hekili.Class
 local scripts = Hekili.Scripts
 
@@ -184,6 +199,7 @@ state.sim = {}
 state.spec = {}
 state.stance = {}
 state.stat = {}
+state.stationary_since = -1
 state.swings = {
     mh_actual = 0,
     mh_speed = UnitAttackSpeed( "player" ) > 0 and UnitAttackSpeed( "player" ) or 2.6,
@@ -201,6 +217,7 @@ state.target = {
     health = {},
     updated = true
 }
+state.mouseover = {}
 
 state.movement = {}
 
@@ -631,6 +648,7 @@ state.GetTime = GetTime
 state.GetTotemInfo = GetTotemInfo
 state.InCombatLockdown = InCombatLockdown
 state.IsActiveSpell = ns.IsActiveSpell
+state.IsActionInRange = IsActionInRange
 state.IsPlayerSpell = IsPlayerSpell
 state.IsSpellKnown = IsSpellKnown
 state.IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
@@ -678,6 +696,7 @@ state.remove = table.remove
 state.tonumber = tonumber
 state.tostring = tostring
 state.type = type
+state.bussy = {ts=0, flags="", st="::", aoe="::"}
 
 state.safenum = function( val )
     if type( val ) == "number" then return val end
@@ -692,6 +711,8 @@ state.safebool = function( val )
 end
 
 state.combat = 0
+state.combat_started = 0
+state.combat_ended = 0
 state.faction = UnitFactionGroup( "player" )
 state.race[ formatKey( UnitRace("player") ) ] = true
 
@@ -1212,9 +1233,11 @@ state.interrupt = interrupt
 -- Use this for readyTime in an interrupt action; will interrupt casts at end of cast and channels ASAP.
 local function timeToInterrupt()
     local casting = state.debuff.casting
+    -- filter by spell ID for exclusions
+    if state.class.interrupt_exclusions_table[casting.v1] ~= nil then return 3600 end
     if casting.down or casting.v2 == 1 then return 3600 end
     if casting.v3 == 1 then return 0 end
-    return max( 0, casting.remains - 0.25 )
+    return max( 0, casting.remains - 0.5 )
 end
 state.timeToInterrupt = timeToInterrupt
 
@@ -2064,6 +2087,11 @@ do
                 return Hekili:GetGreatestTimeToPct( percent ) - ( t.offset + t.delay )
 
             -- Current ability in question, or selected ability to compare to ability in question.
+            elseif k == "real_spell_id" then
+                return select( 9, UnitCastingInfo( "player" ) ) or select( 9, UnitChannelInfo( "player" ) )
+            elseif k == "real_gcd_remains" then
+                local start, duration = GetSpellCooldown(61304)
+                return max((start + duration) - t.now, 0)
             elseif k == "current_action" then return t.this_action
             elseif k == "modified" then t[k] = false
             elseif k == "selected_action" then return
@@ -2080,17 +2108,74 @@ do
             elseif k == "group_members" or k == "active_allies" then t[k] = max( 1, GetNumGroupMembers() )
             elseif k == "level" then t[k] = UnitEffectiveLevel("player") or MAX_PLAYER_LEVEL
             elseif k == "mounted" or k == "is_mounted" then t[k] = IsMounted()
-            elseif k == "moving" then t[k] = ( GetUnitSpeed("player") > 0 )
+            elseif k == "moving" then
+                t[k] = ( GetUnitSpeed("player") > 0 )
+                if not t[k] and t["stationary_since"] == -1 then
+                    t["stationary_since"] = t.now
+                elseif t[k] and t["stationary_since"] ~= -1 then
+                    t["stationary_since"] = -1
+                end
+                return t[k]
+            elseif k == "stationary_for" then
+                if t["stationary_since"] == -1 then return -1 end
+                return t.now - t["stationary_since"]
             elseif k == "raid" then t[k] = IsInRaid() and t.group_members > 5
             elseif k == "solo" then t[k] = t.group_members == 1
             elseif k == "tanking" then t[k] = t.role.tank and t.aggro
-
+            elseif k == "in_vehicle" then
+                return UnitInVehicle("player")
+            elseif k == "has_full_control" then
+                return HasFullControl()
+            elseif k == "time_to_interrupt" then
+                return t.timeToInterrupt()
+            elseif k == "in_combat_lockdown" then
+                return InCombatLockdown()
             -- Enemy counting.
+            elseif k == 'group_focus_exists' then
+                return (UnitExists("focus") and (UnitInParty("focus") or UnitInRaid("focus"))) or false
+            elseif k == 'pet_alive' then
+                return UnitExists( "pet" ) and not UnitIsDead( "pet" ) and UnitHealth( "pet" ) > 0
+            elseif k == 'safe_mouseover' then
+                if not t.mouseover_enemy then
+                    return false
+                end
+                if UnitIsUnit("target", "mouseover") then
+                    return true
+                elseif UnitIsUnit("target", "pettarget") then
+                    return true
+                end
+                if t.group then
+                    for i = 1,5 do
+                        local partyUnitId = "party" .. tostring(i) .. "target"
+                        if UnitIsUnit("target", partyUnitId) then
+                            return true
+                        end
+                    end
+                end
+                if t.raid then
+                    for i = 1,40 do
+                        local partyUnitId = "raid" .. tostring(i) .. "target"
+                        if UnitIsUnit("target", partyUnitId) then
+                            return true
+                        end
+                    end
+                end
+                return false
             elseif k == "active_enemies" then
                 local n = t.true_active_enemies
                 if t.min_targets > 0 then n = max( t.min_targets, n ) end
                 if t.max_targets > 0 then n = min( t.max_targets, n ) end
                 t[k] = max( 1, n or 1 )
+
+            elseif k:sub(1, 11) == "ttds_after_" then
+                local ttd_after = k:match( "^ttds_after_(%d+)$" )
+                if not ttd_after then
+                    return state.active_enemies
+                end
+
+                local n = state.active_enemies
+
+                return min(state.active_enemies, Hekili:GetNumTTDsAfter(tonumber(ttd_after)))
 
             elseif k == "cycle_enemies" then
                 if not t.settings.cycle or t.active_enemies == 1 then return 1 end
@@ -2164,6 +2249,65 @@ do
             -- Specialization State Expressions
             elseif k == "effective_combo_points" then return 0
             elseif k == "prowling" then return t.buff.prowl.up or ( t.buff.cat_form.up and t.buff.shadowform.up )
+
+            -- bussy
+            elseif k == "is_cced" then
+                for aura_i = 1, 40 do
+                    local _, _, icon, _, _, _, _, _, _, spellId = UnitDebuff("player", aura_i)
+                    if icon == nil then
+                        return false
+                    end
+                    if ns.getControlSpellType(spellId) == "CC" then
+                        return true
+                    end
+                end
+                return false
+
+            elseif k == "in_pvp" then
+                return t.bg or t.arena or t.buff.enlisted.up
+
+            elseif k == "is_rooted" then
+                for aura_i = 1, 40 do
+                    local _, _, icon, _, _, _, _, _, _, spellId = UnitDebuff("player", aura_i)
+                    if icon == nil then
+                        return false
+                    end
+                    if ns.getControlSpellType(spellId) == "Root" then
+                        return true
+                    end
+                end
+                return false
+
+            elseif k == "is_snared" then
+                for aura_i = 1, 40 do
+                    local _, _, icon, _, _, _, _, _, _, spellId = UnitDebuff("player", aura_i)
+                    if icon == nil then
+                        return false
+                    end
+                    if ns.getControlSpellType(spellId) == "Snare" then
+                        return true
+                    end
+                end
+                return false
+
+            elseif k == "mouseover_enemy" then
+                if not UnitExists("mouseover") then
+                    return false
+                end
+                if not UnitIsEnemy("player", "mouseover") and not UnitCanAttack("player", "mouseover") then
+                    return false
+                end
+                if UnitIsDead("mouseover") then
+                    return false
+                end
+                if UnitAffectingCombat("mouseover") then
+                    return true
+                end
+                local uName, uRealm = UnitName("mouseover")
+                if uName ~= nil and strfind(uName, "Training Dummy") then
+                    return true
+                end
+                return false
 
             -- Durable stuff; should get manually set if/when needed.
             -- Don't reset.
@@ -2722,6 +2866,11 @@ do
                 if t.alive then return 100 * UnitHealth( "pet" ) / UnitHealthMax( "pet" ) end
                 return 100
 
+            elseif k == "has_target" then
+                return UnitExists( "pettarget" )
+
+            elseif k == "has_my_target" then
+                return UnitExists( "pettarget") and UnitIsUnit( "pettarget", "target" )
             end
 
             local model = class.pets[ k ]
@@ -2933,6 +3082,16 @@ do
                     t[k] = ( UnitCanAttack( "player", "target" ) and ( UnitClassification( "target" ) == "worldboss" or UnitLevel( "target" ) == -1 ) )
                 end
             elseif k == "is_dead" then t[k] = UnitIsDeadOrGhost("target")
+
+            elseif k == "is_vehicle" then
+                return UnitVehicleSeatCount("target") > 0
+
+            elseif k == "is_mouseover" then
+                return UnitExists("target") and UnitIsUnit("target", "mouseover")
+
+            elseif k == 'is_pet_target' then
+                return UnitExists("target") and UnitIsUnit("target", "pettarget")
+
             elseif k == "is_demon" then t[k] = UnitCreatureType( "target" ) == PET_TYPE_DEMON
             elseif k == "is_friendly" then t[k] = UnitCanAssist( "player", "target" )
             elseif k == "is_in_party" then t[k] = UnitInParty( "target" )
@@ -2943,6 +3102,75 @@ do
                 t[k] = isPlayer -- Enables proper treatment of Absolute Corruption and similar modified-in-PvP effects.
 
             elseif k == "is_undead" then t[k] = UnitCreatureType( "target" ) == BATTLE_PET_NAME_4
+
+            elseif k == "is_enemy" then
+                return UnitExists("target") and (UnitIsEnemy("player", "target") or UnitCanAttack("player", "target"))
+
+            elseif k == "affecting_combat" then
+                return UnitExists("target") and UnitAffectingCombat("target")
+
+            elseif k == "threat" then
+                return UnitThreatSituation("player", "target")
+
+            elseif k == "targeting_me" or k == "on_me" then
+                return UnitIsUnit("targettarget", "player")
+
+            elseif k == "targeting_partyraid" or k == "on_partyraid" then
+                return UnitIsPlayer("targettarget") and (UnitInParty("targettarget") or UnitInRaid("targettarget"))
+
+            elseif k == "player_class" then
+                if not t.is_player then
+                    return nil
+                end
+                local localizedClass, englishClass, classIndex = UnitClass("target")
+                return classIndex
+
+            elseif k == 'is_healer' then
+                if not t.is_player then
+                    return false
+                end
+                if npmod ~= nil and npmod.Healers ~= nil then
+                    if npmod.Healers[UnitName("target")] then
+                        return true
+                    end
+                end
+                if state.arena then
+                    local numOpps = GetNumArenaOpponentSpecs()
+                    if numOpps >= 1 then
+                        for i = 1, numOpps do
+                            if UnitIsUnit("target", format('arena%d', i)) then
+                                local opSpec, gender = GetArenaOpponentSpec(i)
+                                if healerSpecIDs[opSpec] then
+                                    return true
+                                end
+                                return false
+                            end
+                        end
+                    end
+                end
+                -- local inspect_id = GetInspectSpecialization("target")
+                -- print(inspect_id)
+                -- if healerSpecIDs[inspect_id] then
+                --     return true
+                -- end
+                return false
+
+            elseif k == "is_player_caster" then
+                local player_class = t.player_class
+                if player_class == 2 or player_class == 5 or player_class == 7 or player_class == 8 or player_class == 9 then
+                    return true
+                end
+                return false
+
+            elseif k == "is_player_melee" then
+                return t.is_player and not t.is_player_caster
+
+            elseif k == 'is_dummy' then
+                local uName, uRealm = UnitName("target")
+                if uName ~= nil and strfind(uName, "Training Dummy") then
+                    return true
+                end
+                return false
 
             elseif k == "level" then t[k] = UnitLevel( "target" ) or UnitLevel( "player" ) or MAX_PLAYER_LEVEL
             elseif k == "moving" then t[k] = GetUnitSpeed( "target" ) > 0
@@ -2984,6 +3212,24 @@ do
     }
     ns.metatables.mt_target = mt_target
 end
+
+local mt_mouseover = {
+    __index = function(t, k)
+        if k == "affecting_combat" then
+            return UnitExists("mouseover") and UnitAffectingCombat("mouseover")
+        elseif k == 'is_dummy' then
+            if not UnitExists("mouseover") then
+                return false
+            end
+            local uName, uRealm = UnitName("mouseover")
+            if uName ~= nil and strfind(uName, "Training Dummy") then
+                return true
+            end
+            return false
+        end
+    end
+}
+ns.metatables.mt_mouseover = mt_mouseover
 
 
 local mt_target_health
@@ -5508,6 +5754,7 @@ setmetatable( state.stat, mt_stat )
 setmetatable( state.swings, mt_swings )
 setmetatable( state.talent, mt_talents )
 setmetatable( state.target, mt_target )
+setmetatable( state.mouseover, mt_mouseover )
 setmetatable( state.target.health, mt_target_health )
 setmetatable( state.toggle, mt_toggle )
 setmetatable( state.totem, mt_totem )

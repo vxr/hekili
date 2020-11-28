@@ -1316,6 +1316,10 @@ spec:RegisterAbilities( {
         bind = "death_sweep",
         nobuff = "metamorphosis",
 
+        usable = function()
+            return action.chaos_strike.in_range, "only usable in melee range"
+        end,
+
         handler = function ()
             applyBuff( "blade_dance" )
             removeBuff( "blade_rhapsody")
@@ -1542,6 +1546,10 @@ spec:RegisterAbilities( {
         talent = "essence_break",
         startsCombat = true,
 
+        usable = function()
+            return action.chaos_strike.in_range, "only usable in melee range"
+        end,
+
         handler = function ()
             applyDebuff( "target", "essence_break" )
             active_dot.essence_break = max( 1, active_enemies )
@@ -1724,6 +1732,10 @@ spec:RegisterAbilities( {
 
         toggle = "cooldowns",
 
+        usable = function()
+            return action.chaos_strike.in_range, "only usable in melee range"
+        end,
+
         handler = function ()
             applyBuff( "fel_barrage" )
         end,
@@ -1855,6 +1867,10 @@ spec:RegisterAbilities( {
         startsCombat = false,
         texture = function() return talent.demonic_intensity.enabled and buff.metamorphosis.up and 135794 or 1344649 end,
 
+        usable = function ()
+            return action.chaos_strike.in_range, "only usable within melee range to tick initial proc damage"
+        end,
+
         handler = function ()
             applyBuff( "immolation_aura" )
             removeBuff( "demonsurge_consuming_fire" )
@@ -1934,6 +1950,10 @@ spec:RegisterAbilities( {
 
             if level > 19 then stat.haste = stat.haste + 10 end
 
+        end,
+
+        usable = function()
+            return action.chaos_strike.in_range, "requires melee range"
         end,
 
         meta = {
@@ -2210,6 +2230,10 @@ spec:RegisterAbilities( {
         startsCombat = true,
         nodebuff = "rooted",
 
+        usable = function()
+            return action.chaos_strike.in_range, "only usable in melee range"
+        end,
+
         readyTime = function ()
             if settings.retreat_and_return == "fel_rush" or settings.retreat_and_return == "either" and not talent.felblade.enabled then
                 return max( 0, cooldown.fel_rush.remains - 1 )
@@ -2263,6 +2287,14 @@ spec:RegisterOptions( {
     potion = "phantom_fire",
 
     package = "Havoc",
+} )
+
+
+spec:RegisterSetting( "dont_interrupt_eyebeam", true, {
+    name = strformat( "%s: Dont Interrupt Channeling", Hekili:GetSpellLinkWithTexture( 198013 ) ),
+    desc = strformat( "When enabled, nothing will be recommended while channeling %s", Hekili:GetSpellLinkWithTexture( 198013 )),
+    type = "toggle",
+    width = "full"
 } )
 
 

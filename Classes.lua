@@ -739,6 +739,8 @@ local HekiliSpecMixin = {
 
         a.realCast = 0
 
+        a.lastFailure = 0
+
         if item then
             --[[ local name, link, _, _, _, _, _, _, _, texture = GetItemInfo( item )
 
@@ -782,6 +784,12 @@ local HekiliSpecMixin = {
                                 a.itemSpellKey = a.key .. "_" .. a.itemSpellID
                                 self.abilities[ a.itemSpellKey ] = a
                                 class.abilities[ a.itemSpellKey ] = a
+                                if self.abilities[ a.itemSpellID ] == nil then
+                                    self.abilities[ a.itemSpellID ] = a
+                                end
+                                if class.abilities[ a.itemSpellID ] == nil then
+                                    class.abilities[ a.itemSpellID ] = a
+                                end
                             end
 
                             if a.itemSpellName then
@@ -1333,6 +1341,15 @@ local all = Hekili:NewSpecialization( 0, "All", "Interface\\Addons\\Hekili\\Text
 ------------------------------
 
 all:RegisterAuras( {
+
+    --- SEASONAL AFFIXES
+    burst = {
+        id = 240443,
+        duration = 4,
+        max_stack = 10,
+        shared = "player", -- use anyone's buff on the player, not just player's.
+    },
+    --- END SEASONAL AFFIXES
 
     enlisted_a = {
         id = 282559,
@@ -2522,6 +2539,46 @@ all:RegisterAbility( "gift_of_the_naaru", {
     end,
 } )
 
+-- bussy
+all:RegisterAbilities( {
+    potion_of_spectral_agility = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171270,
+        copy = "spectral_agility",
+        toggle = "potions",
+    },
+    potion_of_spectral_strength = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171275,
+        copy = "spectral_strength",
+        toggle = "potions",
+    },
+    potion_of_phantom_fire = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171349,
+        copy = "phantom_fire",
+        toggle = "potions",
+    },
+    potion_of_spectral_intellect = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171273,
+        copy = "spectral_intellect",
+        toggle = "potions",
+    },
+})
+
 
 all:RegisterAbilities( {
     global_cooldown = {
@@ -2844,6 +2901,52 @@ all:RegisterAbilities( {
         essential = true,
     },
 
+    healing_potion = {
+        name = function () return ( GetItemInfo( 191380 ) ) or "Refreshing Healing Potion" end,
+        listName = function ()
+            local _, link, _, _, _, _, _, _, _, tex = GetItemInfo( 191380 )
+            if link and tex then return "|T" .. tex .. ":0|t " .. link end
+            return "|cff00ccff[Refreshing Healing Potion]|r"
+        end,
+        cast = 0,
+        cooldown = function () return time > 0 and 3600 or 60 end,
+        gcd = "off",
+
+        item = 191380,
+        bagItem = true,
+
+        startsCombat = false,
+        texture = 4497595,
+
+        toggle = "potions",
+
+        count = function()
+            return GetItemCount(191380)
+        end,
+
+        charges = function()
+            return GetItemCount(191380, false, true)
+        end,
+
+        usable = function ()
+            if GetItemCount( 191380 ) == 0 then return false, "requires healing potion in bags"
+            elseif not IsUsableItem( 191380 ) then return false, "healing potion on CD"
+            elseif health.current >= health.max then return false, "must be damaged"
+            elseif combat > 0 and (class.abilities.healing_potion.lastCast > combat_started) then return false, "already used in combat"
+            elseif (now - class.abilities.healing_potion.lastFailure) < 10 then return false, "healing potion recently failed" end
+            return true
+        end,
+
+        readyTime = function ()
+            local start, duration = GetItemCooldown( 191380 )
+            return max( 0, start + duration - query_time )
+        end,
+
+        handler = function ()
+            gain( 160300, "health" )
+        end,
+    },
+
     healthstone = {
         name = "Healthstone",
         listName = "|T538745:0|t |cff00ccff[Healthstone]|r",
@@ -2857,10 +2960,20 @@ all:RegisterAbilities( {
         startsCombat = false,
         texture = 538745,
 
+        count = function()
+            return GetItemCount(5512)
+        end,
+
+        charges = function()
+            return GetItemCount(5512, false, true)
+        end,
+
         usable = function ()
             if GetItemCount( 5512 ) == 0 then return false, "requires healthstone in bags"
             elseif not IsUsableItem( 5512 ) then return false, "healthstone on CD"
-            elseif health.current >= health.max then return false, "must be damaged" end
+            elseif (health.current ~= nil and health.max ~= nil) and health.current >= health.max then return false, "must be damaged"
+            elseif class.abilities.healthstone.lastCast ~= nil and combat > 0 and (class.abilities.healthstone.lastCast > combat_started) then return false, "already used in combat"
+            elseif class.abilities.healthstone.lastFailure ~= nil and (now - class.abilities.healthstone.lastFailure) < 10 then return false, "healthstone recently failed" end
             return true
         end,
 
@@ -5873,6 +5986,13 @@ all:RegisterAura( "norgannons_command", {
 } )
 
 
+-- Dragonflight Season 2 Mythic+
+all:RegisterAura( "entangled", {
+    id = 408556,
+    duration = 8
+})
+
+
 -- Legion TW
 all:RegisterAbilities( {
     windscar_whetstone = {
@@ -6653,6 +6773,17 @@ class.trinkets = {
     [0] = { -- for when nothing is equipped.
     },
 }
+
+class.interrupt_exclusions = {
+    -- Everbloom M+
+    168040, -- https://www.wowhead.com/spell=168040/natures-wrath
+    168092, -- https://www.wowhead.com/spell=168092/water-bolt
+}
+
+class.interrupt_exclusions_table = {}
+for _, _value in ipairs(class.interrupt_exclusions) do
+    class.interrupt_exclusions_table[_value] = true
+end
 
 
 setmetatable( class.trinkets, {
