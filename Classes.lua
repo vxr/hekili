@@ -546,13 +546,13 @@ local HekiliSpecMixin = {
 
         a.key = ability
         a.from = self.id
-        
+
         local item = data.item
         if item and type( item ) == 'function' then
             setfenv( item, state )
             item = item()
         end
-        
+
         if not data.id then
             if data.item or data.isItem then
                 self.itemAbilities = self.itemAbilities + 1
@@ -604,6 +604,8 @@ local HekiliSpecMixin = {
         end
 
         a.realCast = 0
+
+        a.lastFailure = 0
 
         if a.isItem or item and a.id < 0 then
             --[[ local name, link, _, _, _, _, _, _, _, texture = GetItemInfo( item )
@@ -776,7 +778,7 @@ local HekiliSpecMixin = {
                     end ]]
                 end
             end
-            
+
         end
 
         if a.id and a.id > 0 then
@@ -1435,7 +1437,7 @@ all:RegisterAuras( {
         copy = { 14752, 14818, 14819, 16875, 25312, 27841, 39234, 48073 },
         shared = "player"
     },
-    
+
     -- Increases Spirit by $s1.
     prayer_of_spirit = {
         id = 27681,
@@ -1809,7 +1811,7 @@ all:RegisterAuras( {
         shared = "player"
     },
 
-    -- Places a Blessing on the friendly target, increasing Strength, Agility, Stamina, and Intellect by 5%, and all magical resistances by 97, for 1 hour.  
+    -- Places a Blessing on the friendly target, increasing Strength, Agility, Stamina, and Intellect by 5%, and all magical resistances by 97, for 1 hour.
     -- If target is in your party or raid, all party and raid members will be affected. Players may only have one Blessing on them per Paladin at any one time.
     blessing_of_kings = {
         id = 79063,
@@ -1819,7 +1821,7 @@ all:RegisterAuras( {
         copy = { 20217, 79063 }
     },
 
-    -- Places a Blessing on the friendly target, increasing melee attack power by 20%, increasing ranged attack power by 10%, and restoring 0 mana every 5 seconds for 1 hour.  
+    -- Places a Blessing on the friendly target, increasing melee attack power by 20%, increasing ranged attack power by 10%, and restoring 0 mana every 5 seconds for 1 hour.
     -- If target is in your party or raid, all party and raid members will be affected. Players may only have one Blessing on them per Paladin at any one time.
     blessing_of_might = {
         id = 79102,
@@ -2481,7 +2483,7 @@ all:RegisterPotions( {
             max_stack = 1,
         }
     },
-    
+
     speed = {
         item = 40211,
         buff = "speed",
@@ -3285,7 +3287,7 @@ all:RegisterAbilities( {
             applyBuff( "tol_vir_potion" )
         end,
     },
-    
+
     endless_mana_potion = {
         name = function() return GetItemInfo( 43570 ) end,
         cast = 0,
@@ -4197,7 +4199,7 @@ end
         duration = 15,
         max_stack = 1
 } )
-   
+
 
     all:RegisterAbility( "swordguard_embroidery", {
         id = 75176,
@@ -7338,6 +7340,17 @@ class.trinkets = {
     [0] = { -- for when nothing is equipped.
     },
 }
+
+class.interrupt_exclusions = {
+    -- Everbloom M+
+    168040, -- https://www.wowhead.com/spell=168040/natures-wrath
+    168092, -- https://www.wowhead.com/spell=168092/water-bolt
+}
+
+class.interrupt_exclusions_table = {}
+for _, _value in ipairs(class.interrupt_exclusions) do
+    class.interrupt_exclusions_table[_value] = true
+end
 
 
 setmetatable( class.trinkets, {

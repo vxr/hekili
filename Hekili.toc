@@ -5,7 +5,7 @@
 ## X-Flavor: Cataclysm
 ## Notes: Priority helper for many DPS and tanking specializations, based on SimulationCraft action lists.
 ## SavedVariables: HekiliDB
-## OptionalDeps: AddOnSkins, ButtonForge, ConsolePort, ElvUI, LibDualSpec-1.0, Masque, WeakAuras
+## OptionalDeps: AddOnSkins, ButtonForge, ConsolePort, ElvUI, LibDualSpec-1.0, Masque, WeakAuras, ViragDevTool
 ## X-Curse-Project-ID: 69254
 ## X-WoWI-ID: 24608
 ## X-Wago-ID: WYK9WXNL

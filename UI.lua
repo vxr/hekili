@@ -871,13 +871,13 @@ do
         Cooldowns = 0.416
     }
 
-    local oocRefresh = 1
+    local oocRefresh = 0.2
     local icRefresh = {
-        Primary = 0.25,
-        AOE = 0.25,
+        Primary = 0.05,
+        AOE = 0.1,
         Interrupts = 0.25,
         Defensives = 0.5,
-        Cooldowns = 0.25
+        Cooldowns = 0.2
     }
 
     local LRC = LibStub("LibRangeCheck-2.0")
