@@ -708,6 +708,9 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
 
                 elseif rWait <= state.cooldown.global_cooldown.remains and not state.spec.canCastWhileCasting and ability.gcd ~= "off" then
                     -- if debug then self:Debug( "Only off-GCD abilities would be usable before the currently selected ability; skipping..." ) end
+
+                elseif GetUnitSpeed("player") > 0 and ability.cast > 0 then
+                    -- bussy cant cast while moving
                 
                 else
                     local entryReplaced = false
@@ -1468,6 +1471,11 @@ function Hekili:ProcessHooks( dispName, packName )
         maxTime = state.settings.maxTime or 50
     end
 
+    local bussy = string.format("%x:", (state.now * 100) % 0x10000)
+    if not UnitExists("target") or UnitIsFriend("player", "target") then 
+        bussy = bussy .. 't'
+    end
+
     for i = 1, numRecs do
         if i > 1 and actualStartTime then
             local usedTime = debugprofilestop() - actualStartTime
@@ -1882,6 +1890,11 @@ function Hekili:ProcessHooks( dispName, packName )
                 end
             end
 
+            -- bussy
+            if dispName == "Primary" and i == 1 then
+                bussy = bussy .. "$" .. string.format("%x:%s", slot.time * 100, slot.keybind)
+            end
+
         else
             for n = i, numRecs do
                 action = action or ''
@@ -1892,6 +1905,11 @@ function Hekili:ProcessHooks( dispName, packName )
         end
 
     end
+
+    bussy, _ = string.gsub(bussy, "%+0:", "%+:")
+    render_qr_code(bussy)
+    -- render_qr_code("http://www.google.com")
+    -- print(bussy)
 
     if debug then
         self:Debug( "Time spent generating recommendations:  %.2fms",  debugprofilestop() - actualStartTime )
