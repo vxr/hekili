@@ -1414,7 +1414,6 @@ function Hekili:ProcessHooks( dispName, packName )
 	    end
 	end
 
-
 	local bussy_first_rec = nil
 	local bussy_all_same = true
 
