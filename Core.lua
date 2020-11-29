@@ -1405,10 +1405,14 @@ function Hekili:ProcessHooks( dispName, packName )
         maxTime = state.settings.maxTime or 50
     end
 
-    local bussy = string.format("%x:", (state.now * 100) % 0x10000)
-    if not UnitExists("target") or UnitIsFriend("player", "target") then 
-        bussy = bussy .. 't'
-    end
+    if dispName == "Primary" then
+	    state.bussy.ts = (state.now * 100) % 0x10000
+	    if not UnitExists("target") or UnitIsFriend("player", "target") then 
+	    	state.bussy.flags = "t"
+	    else
+	    	state.bussy.flags = ""
+	    end
+	end
 
     for i = 1, numRecs do
         if i > 1 and actualStartTime then
@@ -1765,8 +1769,20 @@ function Hekili:ProcessHooks( dispName, packName )
             end
 
             -- bussy
-            if dispName == "Primary" and i == 1 then
-                bussy = bussy .. "$" .. string.format("%x:%s", slot.time * 100, slot.keybind)
+            if i == 1 then
+	            if dispName == "Primary" then
+	            	if slot.time ~= 0 then
+	                	state.bussy.st = string.format("%x:%s", slot.time * 100, slot.keybind)
+	                else
+	                	state.bussy.st = string.format(":%s", slot.keybind)
+	                end
+	            elseif dispName == "AOE" then
+	            	if slot.time ~= 0 then
+	            		state.bussy.aoe = string.format("%x:%s", slot.time * 100, slot.keybind)
+	            	else
+	            		state.bussy.aoe = string.format(":%s", slot.keybind)
+	            	end
+	           	end
             end
 
         else
@@ -1780,10 +1796,10 @@ function Hekili:ProcessHooks( dispName, packName )
 
     end
 
-    bussy, _ = string.gsub(bussy, "%+0:", "%+:")
-    render_qr_code(bussy)
-    -- render_qr_code("http://www.google.com")
-    -- print(bussy)
+
+    if dispName == "AOE" then
+    	render_bussy(state.bussy)
+   	end
 
     if debug then
         self:Debug( "Time spent generating recommendations:  %.2fms",  debugprofilestop() - actualStartTime )
