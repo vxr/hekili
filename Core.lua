@@ -1898,15 +1898,19 @@ function Hekili:ProcessHooks( dispName, packName )
             if i == 1 then
 	            if dispName == "Primary" then
 	            	if slot.time ~= 0 then
-	                	state.bussy.st = string.format("%x:%s", slot.time * 100, slot.keybind)
+	                	state.bussy.st = string.format("%x:%s:", slot.time * 100, slot.keybind)
 	                else
-	                	state.bussy.st = string.format(":%s", slot.keybind)
+	                	state.bussy.st = string.format(":%s:", slot.keybind)
 	                end
 	            elseif dispName == "AOE" then
+	            	local aoe_flags = ""
+	            	if slot.indicator == "cycle" then
+	            		aoe_flags = "c"
+	            	end
 	            	if slot.time ~= 0 then
-	            		state.bussy.aoe = string.format("%x:%s", slot.time * 100, slot.keybind)
+	            		state.bussy.aoe = string.format("%x:%s:%s", slot.time * 100, slot.keybind, aoe_flags)
 	            	else
-	            		state.bussy.aoe = string.format(":%s", slot.keybind)
+	            		state.bussy.aoe = string.format(":%s:%s", slot.keybind, aoe_flags)
 	            	end
 	           	end
             end
