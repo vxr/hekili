@@ -1913,21 +1913,13 @@ function Hekili:ProcessHooks( dispName, packName )
                     slot_flags = "c"
                 end
 	            if dispName == "Primary" then
-	            	if slot.time ~= 0 then
-	                	state.bussy.st = string.format("%x:%s:", slot.time * 100, slot.keybind)
-	                else
-	                	state.bussy.st = string.format(":%s:", slot.keybind)
-	                end
+                	state.bussy.st = string.format("%s:%s:", this_slot_time, slot.keybind)
 	            elseif dispName == "AOE" then
 	            	local aoe_flags = ""
 	            	if slot.indicator == "cycle" then
 	            		aoe_flags = "c"
 	            	end
-	            	if slot.time ~= 0 then
-	            		state.bussy.aoe = string.format("%x:%s:%s", slot.time * 100, slot.keybind, aoe_flags)
-	            	else
-	            		state.bussy.aoe = string.format(":%s:%s", slot.keybind, aoe_flags)
-	            	end
+            		state.bussy.aoe = string.format("%s:%s:%s", this_slot_time, slot.keybind, aoe_flags)
 	           	end
                 if state.bussy.flags == "" and class.abilities[action].startsCombat and (not UnitExists("target") or UnitIsFriend("player", "target")) then
                     state.bussy.flags = "t"
