@@ -1896,22 +1896,20 @@ function Hekili:ProcessHooks( dispName, packName )
 
             -- bussy
             if i == 1 then
+                local this_slot_time = slot.time
+                if this_slot_time == 0 or class.abilities[action].gcd == "off" then
+                    this_slot_time = ""
+                else
+                    this_slot_time = string.format("%x", this_slot_time * 100)
+                end
 	            if dispName == "Primary" then
-	            	if slot.time ~= 0 then
-	                	state.bussy.st = string.format("%x:%s:", slot.time * 100, slot.keybind)
-	                else
-	                	state.bussy.st = string.format(":%s:", slot.keybind)
-	                end
+                	state.bussy.st = string.format("%s:%s:", this_slot_time, slot.keybind)
 	            elseif dispName == "AOE" then
 	            	local aoe_flags = ""
 	            	if slot.indicator == "cycle" then
 	            		aoe_flags = "c"
 	            	end
-	            	if slot.time ~= 0 then
-	            		state.bussy.aoe = string.format("%x:%s:%s", slot.time * 100, slot.keybind, aoe_flags)
-	            	else
-	            		state.bussy.aoe = string.format(":%s:%s", slot.keybind, aoe_flags)
-	            	end
+            		state.bussy.aoe = string.format("%s:%s:%s", this_slot_time, slot.keybind, aoe_flags)
 	           	end
             end
 
