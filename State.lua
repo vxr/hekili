@@ -527,7 +527,7 @@ state.remove = table.remove
 state.tonumber = tonumber
 state.tostring = tostring
 state.type = type
-state.bussy = {ts=0, flags="", st="", aoe=""}
+state.bussy = {ts=0, flags="", st="::", aoe="::"}
 
 state.safenum = function( val )
     if type( val ) == "number" then return val end

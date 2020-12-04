@@ -1798,9 +1798,11 @@ function Hekili:ProcessHooks( dispName, packName )
 
     end
 
-
-    if dispName == "AOE" then
+    if dispName == "AOE" or Hekili.DB.profile.toggles.mode.value == "automatic" then
     	render_bussy(state.bussy)
+        state.bussy.st = "::"
+        state.bussy.aoe = "::"
+        state.bussy.flags = ""
    	end
 
     if debug then
