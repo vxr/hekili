@@ -1414,6 +1414,10 @@ function Hekili:ProcessHooks( dispName, packName )
 	    end
 	end
 
+
+	local bussy_first_rec = nil
+	local bussy_all_same = true
+
     for i = 1, numRecs do
         if i > 1 and actualStartTime then
             local usedTime = debugprofilestop() - actualStartTime
@@ -1771,20 +1775,26 @@ function Hekili:ProcessHooks( dispName, packName )
             -- bussy
             if i == 1 then
                 local this_slot_time = slot.time
+                local slot_flags = ""
                 if this_slot_time == 0 or class.abilities[action].gcd == "off" then
                     this_slot_time = ""
                 else
                     this_slot_time = string.format("%x", this_slot_time * 100)
                 end
+                if slot.indicator == "cycle" then
+                    slot_flags = "c"
+                end
 	            if dispName == "Primary" then
-                	state.bussy.st = string.format("%s:%s:", this_slot_time, slot.keybind)
+                	state.bussy.st = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
 	            elseif dispName == "AOE" then
-	            	local aoe_flags = ""
-	            	if slot.indicator == "cycle" then
-	            		aoe_flags = "c"
-	            	end
-            		state.bussy.aoe = string.format("%s:%s:%s", this_slot_time, slot.keybind, aoe_flags)
+	            	-- print(slot.script .. slot.actionName)
+            		state.bussy.aoe = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
 	           	end
+	           	bussy_first_rec = slot.script .. slot.actionName
+	  		else
+	  			if (slot.script .. slot.actionName) ~= bussy_first_rec then
+	  				bussy_all_same = false
+	  			end
             end
 
         else
@@ -1796,6 +1806,12 @@ function Hekili:ProcessHooks( dispName, packName )
             break
         end
 
+    end
+
+    if dispName == "AOE" and bussy_all_same then
+    	state.bussy.aoe = state.bussy.aoe .. "c"
+    -- elseif dispName == "Primary" and bussy_all_same then
+    -- 	state.bussy.st = state.bussy.st .. "c"
     end
 
     if dispName == "AOE" or Hekili.DB.profile.toggles.mode.value == "automatic" then
