@@ -2634,6 +2634,24 @@ local mt_target = {
         elseif k == "is_player_melee" then
             return t.is_player and not t.is_player_caster
 
+
+        elseif k == "player_class" then
+            if not t.is_player then
+                return nil
+            end
+            local localizedClass, englishClass, classIndex = UnitClass("target")
+            return classIndex
+
+        elseif k == "is_player_caster" then
+            local player_class = t.player_class
+            if player_class == 2 or player_class == 5 or player_class == 7 or player_class == 8 or player_class == 9 then
+                return true
+            end
+            return false
+
+        elseif k == "is_player_melee" then
+            return t.is_player and not t.is_player_caster
+
         elseif k == 'is_boss' then
             if UnitExists( "boss1" ) and UnitIsUnit( "target", "boss1" ) or
                 UnitExists( "boss2" ) and UnitIsUnit( "target", "boss2" ) or
