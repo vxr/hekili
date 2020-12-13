@@ -1473,7 +1473,7 @@ function Hekili:ProcessHooks( dispName, packName )
 
     if dispName == "Primary" then
 	    state.bussy.ts = (state.now * 100) % 0x10000
-	    if not UnitExists("target") or UnitIsFriend("player", "target") then 
+	    if UnitAffectingCombat("player") and (not UnitExists("target") or UnitIsFriend("player", "target")) then 
 	    	state.bussy.flags = "t"
 	    else
 	    	state.bussy.flags = ""
@@ -1916,6 +1916,9 @@ function Hekili:ProcessHooks( dispName, packName )
 	            	-- print(slot.script .. slot.actionName)
             		state.bussy.aoe = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
 	           	end
+                if state.bussy.flags == "" and class.abilities[action].startsCombat and (not UnitExists("target") or UnitIsFriend("player", "target")) then
+                    state.bussy.flags = "t"
+                end
 	           	bussy_first_rec = slot.script .. slot.actionName
 	  		else
 	  			if (slot.script .. slot.actionName) ~= bussy_first_rec then
