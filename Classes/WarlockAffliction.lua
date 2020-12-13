@@ -106,6 +106,7 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
         rampant_afflictions = 5379, -- 335052
         rot_and_decay = 16, -- 212371
         soulshatter = 13, -- 212356
+        rapid_contagion = 5386, -- 344566
     } )
 
     -- Auras
@@ -394,6 +395,11 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
         demon_armor = {
             id = 285933,
             duration = 3600,
+            max_stack = 1,
+        },
+        rapid_contagion = {
+            id = 344566,
+            duration = 15,
             max_stack = 1,
         },
         essence_drain = {
@@ -809,7 +815,7 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             spend = 0.01,
             spendType = "mana",
 
-            pvptalent = "curse_of_tongues",
+            -- pvptalent = "curse_of_tongues",
 
             startsCombat = true,
             texture = 136140,
@@ -920,13 +926,14 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             startsCombat = false,
             texture = 136185,
 
+            usable = function () return buff.demon_armor.down end,
+
             handler = function ()
                 applyBuff( "demon_armor" )
             end,
         },
 
-
-        --[[ demonic_circle = {
+        demonic_circle = {
             id = 48018,
             cast = 0.5,
             cooldown = 10,
@@ -935,9 +942,11 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             spend = 0.02,
             spendType = "mana",
 
-            startsCombat = true,
+            startsCombat = false,
+            nobuff = "demonic_circle",
 
             handler = function ()
+                applyBuff( "demonic_circle" )
             end,
         },
 
@@ -951,16 +960,26 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             spend = 0.03,
             spendType = "mana",
 
-            startsCombat = true,
+            startsCombat = false,
+
+            buff = "demonic_circle",
 
             handler = function ()
+                if conduit.demonic_momentum.enabled then applyBuff( "demonic_momentum" ) end
             end,
 
-            -- Conduit in WarlockDemonology.lua
+            auras = {
+                -- Conduit
+                demonic_momentum = {
+                    id = 339412,
+                    duration = 5,
+                    max_stack = 1
+                }
+            }
         },
 
 
-        demonic_gateway = {
+        --[[ demonic_gateway = {
             id = 111771,
             cast = 2,
             cooldown = 10,
@@ -990,6 +1009,7 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
 
             usable = function ()
                 if buff.dispellable_magic.down then return false, "no dispellable magic aura" end
+                if not pet.felhunter.alive then return false, "missing pet" end
                 return true
             end,
 
@@ -1162,10 +1182,19 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             gcd = "spell",
 
             startsCombat = false,
-            texture = 538443,
 
-            usable = function () return pet.exists and buff.grimoire_of_sacrifice.down end,
+            talent = "grimoire_of_sacrifice",
+            nobuff = "grimoire_of_sacrifice",
+
+            essential = true,
+
+            usable = function () return pet.active end,
             handler = function ()
+                if pet.felhunter.alive then dismissPet( "felhunter" )
+                elseif pet.imp.alive then dismissPet( "imp" )
+                elseif pet.succubus.alive then dismissPet( "succubus" )
+                elseif pet.voidawalker.alive then dismissPet( "voidwalker" ) end
+
                 applyBuff( "grimoire_of_sacrifice" )
             end,
         },
@@ -1318,6 +1347,22 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             end,
         }, ]]
 
+        rapid_contagion = {
+            id = 344566,
+            cast = 0,
+            cooldown = 30,
+            gcd = "spell",
+
+            spend = 3,
+            spendType = "soul_shards",
+
+            startsCombat = true,
+
+            handler = function ()
+                applyBuff( "nether_ward" )
+            end,
+        },
+
 
         seed_of_corruption = {
             id = 27243,
@@ -1386,6 +1431,46 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             end,
         },
 
+        shadow_bulwark = {
+            id = 132413,
+            cast = 0,
+            cooldown = 120,
+            gcd = "spell",
+
+            spend = 0.01,
+            spendType = "mana",
+
+            startsCombat = false,
+
+            usable = function ()
+                return buff.grimoire_of_sacrifice.up, "requires grimoire_of_sacrifice"
+            end,
+
+            handler = function ()
+                applyBuff( "shadow_bulwark" )
+            end,
+        },
+
+        singe_magic = {
+            id = 132411,
+            known = function () return IsSpellKnownOrOverridesKnown( 132411 ) or IsSpellKnownOrOverridesKnown( 119905 ) end,
+            cast = 0,
+            cooldown = 15,
+            gcd = "spell",
+
+            spend = 0.03,
+            spendType = "mana",
+
+            startsCombat = true,
+            
+            buff = "dispellable_magic",
+            usable = function ()
+                return pet.imp.alive or buff.grimoire_of_sacrifice.up, "requires imp or grimoire_of_sacrifice"
+            end,
+            handler = function ()
+                removeBuff( "dispellable_magic" )
+            end,
+        },
 
         siphon_life = {
             id = 63106,
@@ -1472,6 +1557,10 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             debuff = "casting",
             readyTime = state.timeToInterrupt,
 
+            usable = function ()
+                return pet.felhunter.alive or buff.grimoire_of_sacrifice.up, "requires imp or grimoire_of_sacrifice"
+            end,
+
             handler = function ()
                 interrupt()
             end,
@@ -1514,7 +1603,11 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             spend = function () return buff.fel_domination.up and 0 or 1 end,
             spendType = "soul_shards",
 
-            usable = function () return not pet.alive end,
+            usable = function ()
+                if pet.alive then return false, "pet is alive"
+                elseif buff.grimoire_of_sacrifice.up then return false, "grimoire_of_sacrifice is up" end
+                return true
+            end,
             handler = function () summonPet( "imp" ) end,
         },
 
@@ -1528,7 +1621,11 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             spend = function () return buff.fel_domination.up and 0 or 1 end,
             spendType = "soul_shards",
 
-            usable = function () return not pet.alive end,
+            usable = function ()
+                if pet.alive then return false, "pet is alive"
+                elseif buff.grimoire_of_sacrifice.up then return false, "grimoire_of_sacrifice is up" end
+                return true
+            end,
             handler = function () summonPet( "voidwalker" ) end,
         },
 
@@ -1842,9 +1939,15 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
         damage = true,
         damageExpiration = 6,
 
-        potion = "spectral_intellect",
+        potion = "unbridled_fury",
 
         package = "Affliction",
+
+        -- items = {
+        --     gladiator_medallion = {
+        --         keybind = "]",
+        --     },
+        -- },
     } )
 
 

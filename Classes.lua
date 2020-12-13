@@ -1647,6 +1647,11 @@ all:RegisterAuras( {
 
 
 all:RegisterPotions( {
+    -- bussy
+    spiritual_healing_potion = {
+        item = 171267,
+        buff = "spiritual_healing_potion",
+    },
     -- 9.0
     potion_of_spectral_strength = {
         item = 171275,

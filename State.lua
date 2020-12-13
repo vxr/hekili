@@ -1709,7 +1709,13 @@ local mt_state = {
         elseif k == "mounted" or k == "is_mounted" then
             return IsMounted()
 
-        elseif k == "boss" then
+        elseif k == "in_vehicle" then
+            return UnitInVehicle("player")
+
+        elseif k == "has_full_control" then
+            return HasFullControl()
+
+        elseif k == 'boss' then
             return ( t.encounterID > 0 or ( UnitCanAttack( "player", "target" ) and ( UnitClassification( "target" ) == "worldboss" or UnitLevel( "target" ) == -1 ) ) ) == true
 
         elseif k == "cycle" then
@@ -2534,7 +2540,24 @@ local mt_target = {
         elseif k == "is_player" then
             return UnitIsPlayer( "target" )
 
-        elseif k == "is_boss" then
+        elseif k == "player_class" then
+            if not t.is_player then
+                return nil
+            end
+            local localizedClass, englishClass, classIndex = UnitClass("target")
+            return classIndex
+
+        elseif k == "is_player_caster" then
+            local player_class = t.player_class
+            if player_class == 2 or player_class == 5 or player_class == 7 or player_class == 8 or player_class == 9 then
+                return true
+            end
+            return false
+
+        elseif k == "is_player_melee" then
+            return t.is_player and not t.is_player_caster
+
+        elseif k == 'is_boss' then
             if UnitExists( "boss1" ) and UnitIsUnit( "target", "boss1" ) or
                 UnitExists( "boss2" ) and UnitIsUnit( "target", "boss2" ) or
                 UnitExists( "boss3" ) and UnitIsUnit( "target", "boss3" ) or
@@ -2549,7 +2572,22 @@ local mt_target = {
         elseif k == "is_friendly" then
             return UnitExists( "target" ) and UnitIsFriend( "target", "player" )
 
-        elseif k:sub(1, 6) == "within" then
+        elseif k == "is_enemy" then
+            return UnitExists("target") and UnitIsEnemy("player", "target")
+
+        elseif k == "affecting_combat" then
+            return UnitExists("target") and UnitAffectingCombat("target")
+
+        elseif k == "threat" then
+            return UnitThreatSituation("player", "target")
+
+        elseif k == "targeting_me" then
+            return UnitIsUnit("targettarget", "player")
+
+        elseif k == "targeting_partyraid" then
+            return UnitIsPlayer("targettarget") and (UnitInParty("targettarget") or UnitInRaid("targettarget"))
+
+        elseif k:sub(1, 6) == 'within' then
             local maxR = k:match( "^within(%d+)$" )
 
             if not maxR then
