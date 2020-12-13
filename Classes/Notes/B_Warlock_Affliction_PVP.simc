@@ -12,61 +12,60 @@
 # - Set some call_action_list entries to strict to avoid checking lists that won't be reached.
 
 actions.precombat=fel_domination,if=time>0&!pet.alive&!buff.grimoire_of_sacrifice.up
-actions.precombat+=/summon_felhunter,if=action.summon_felhunter.lastCast+(action.summon_felhunter.cast*1.3)<query_time
+actions.precombat+=/summon_pet
 actions.precombat+=/grimoire_of_sacrifice,if=talent.grimoire_of_sacrifice.enabled
 actions.precombat+=/variable,name=dots_ready,value=active_dot.corruption>0&active_dot.agony>0&active_dot.unstable_affliction>0&(!talent.siphon_life.enabled|active_dot.siphon_life>0)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled)
+actions.precombat+=/variable,name=basic_dots_ready,value=active_dot.corruption>0&active_dot.agony>0&active_dot.unstable_affliction>0&(!talent.siphon_life.enabled|active_dot.siphon_life>0)
+actions.precombat+=/variable,name=in_pvp,value=bg|arena|buff.enlisted.up
 actions.precombat+=/demon_armor
-actions.precombat+=/create_healthstone,if=(!action.healthstone.count|action.healthstone.charges<3)&action.create_healthstone.lastCast+(action.create_healthstone.cast*1.3)<query_time
-# actions.precombat+=/use_item,name=azsharas_font_of_power
-# actions.precombat+=/seed_of_corruption,if=spell_targets.seed_of_corruption_aoe>=3&!equipped.169314
-# actions.precombat+=/haunt
-# actions.precombat+=/shadow_bolt,if=!talent.haunt.enabled&spell_targets.seed_of_corruption_aoe<3&!equipped.169314
+actions.precombat+=/use_item,name=azsharas_font_of_power
+actions.precombat+=/seed_of_corruption,if=spell_targets.seed_of_corruption_aoe>=3&!equipped.169314
+actions.precombat+=/haunt
+actions.precombat+=/shadow_bolt,if=!talent.haunt.enabled&spell_targets.seed_of_corruption_aoe<3&!equipped.169314
 
 # Executed every time the actor is available.
-# actions=call_action_list,name=pvp_base,if=in_pvp|torghast
-# actions+=/call_action_list,name=basic,if=!in_pvp
-actions=call_action_list,name=pvp_base
-
-actions.basic=spell_lock
-actions.basic+=/call_action_list,name=aoe,strict=1,if=active_enemies>3
-actions.basic+=/phantom_singularity,if=time>30
-actions.basic+=/call_action_list,name=darkglare_prep,if=(covenant.venthyr&dot.impending_catastrophe_dot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&dot.soul_rot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&dot.phantom_singularity.ticking&dot.phantom_singularity.remains<2)
-actions.basic+=/agony,if=dot.agony.remains<4
-actions.basic+=/agony,cycle_targets=1,if=(active_enemies>1)&(dot.agony.remains<4)
-actions.basic+=/haunt
-actions.basic+=/call_action_list,name=darkglare_prep,if=(active_enemies>2&covenant.venthyr&(cooldown.impending_catastrophe.ready|dot.impending_catastrophe_dot.ticking)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))|(active_enemies>2&(covenant.necrolord|covenant.kyrian|covenant.none)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))|(active_enemies>2&covenant.night_fae&(cooldown.soul_rot.ready|dot.soul_rot.ticking)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))
-actions.basic+=/seed_of_corruption,if=active_enemies>2&talent.sow_the_seeds.enabled&!dot.seed_of_corruption.ticking&!in_flight
-actions.basic+=/seed_of_corruption,if=active_enemies>2&talent.siphon_life.enabled&!dot.seed_of_corruption.ticking&!in_flight&dot.corruption.remains<4
-actions.basic+=/vile_taint,if=(soul_shard>1|active_enemies>2)&cooldown.summon_darkglare.remains>12
-actions.basic+=/unstable_affliction,if=active_dot.unstable_affliction=0|ticking&dot.unstable_affliction.remains<4
-actions.basic+=/siphon_life,if=dot.siphon_life.remains<4
-actions.basic+=/siphon_life,cycle_targets=1,if=(active_enemies>1)&(dot.siphon_life.remains<4)
-actions.basic+=/call_action_list,name=covenant,if=!covenant.necrolord
-actions.basic+=/corruption,if=active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled)&dot.corruption.remains<2
-actions.basic+=/corruption,cycle_targets=1,if=(active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled))&(dot.corruption.remains<2)
-actions.basic+=/phantom_singularity,if=covenant.necrolord|covenant.night_fae|covenant.kyrian|covenant.none
-actions.basic+=/malefic_rapture,if=soul_shard>4
-actions.basic+=/call_action_list,name=darkglare_prep,if=(covenant.venthyr&(cooldown.impending_catastrophe.ready|dot.impending_catastrophe_dot.ticking)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&(cooldown.soul_rot.ready|dot.soul_rot.ticking)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))
-actions.basic+=/dark_soul,if=cooldown.summon_darkglare.remains>time_to_die
-actions.basic+=/call_action_list,name=item
-actions.basic+=/call_action_list,name=se,strict=1,if=debuff.shadow_embrace.stack<(2-action.shadow_bolt.in_flight)|debuff.shadow_embrace.remains<3
-actions.basic+=/rapid_contagion,if=soul_shards>3&(active_dot.corruption>0&active_dot.agony>0&active_dot.unstable_affliction>0&(!talent.siphon_life.enabled|active_dot.siphon_life>0))
-actions.basic+=/malefic_rapture,if=dot.impending_catastrophe_dot.ticking
-actions.basic+=/malefic_rapture,if=dot.soul_rot.ticking
-actions.basic+=/malefic_rapture,if=talent.phantom_singularity.enabled&(dot.phantom_singularity.ticking|soul_shard>3|time_to_die<cooldown.phantom_singularity.remains)
-actions.basic+=/malefic_rapture,if=talent.sow_the_seeds.enabled
-actions.basic+=/drain_life,if=buff.inevitable_demise.stack>40|buff.inevitable_demise.up&time_to_die<4
-actions.basic+=/call_action_list,name=covenant
-actions.basic+=/agony,if=refreshable
-actions.basic+=/agony,cycle_targets=1,if=(active_enemies>1)&(refreshable)
-actions.basic+=/corruption,if=refreshable&active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled)
-actions.basic+=/unstable_affliction,if=refreshable
-actions.basic+=/siphon_life,if=refreshable
-actions.basic+=/siphon_life,cycle_targets=1,if=(active_enemies>1)&(refreshable)
-actions.basic+=/corruption,cycle_targets=1,if=(active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled))&(refreshable)
-actions.basic+=/drain_life,if=in_pvp&health.pct<=70
-actions.basic+=/drain_soul,interrupt=1
-actions.basic+=/shadow_bolt
+actions=call_action_list,name=pvp_urgent,if=in_pvp
+actions+=/spell_lock
+# actions+=/devour_magic
+actions+=/call_action_list,name=aoe,strict=1,if=active_enemies>3
+actions+=/phantom_singularity,if=time>30
+actions+=/call_action_list,name=darkglare_prep,if=(covenant.venthyr&dot.impending_catastrophe_dot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&dot.soul_rot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&dot.phantom_singularity.ticking&dot.phantom_singularity.remains<2)
+actions+=/agony,if=dot.agony.remains<4
+actions+=/agony,cycle_targets=1,if=(active_enemies>1)&(dot.agony.remains<4)
+actions+=/haunt
+actions+=/call_action_list,name=darkglare_prep,if=(active_enemies>2&covenant.venthyr&(cooldown.impending_catastrophe.ready|dot.impending_catastrophe_dot.ticking)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))|(active_enemies>2&(covenant.necrolord|covenant.kyrian|covenant.none)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))|(active_enemies>2&covenant.night_fae&(cooldown.soul_rot.ready|dot.soul_rot.ticking)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))
+actions+=/seed_of_corruption,if=active_enemies>2&talent.sow_the_seeds.enabled&!dot.seed_of_corruption.ticking&!in_flight
+actions+=/seed_of_corruption,if=active_enemies>2&talent.siphon_life.enabled&!dot.seed_of_corruption.ticking&!in_flight&dot.corruption.remains<4
+actions+=/vile_taint,if=(soul_shard>1|active_enemies>2)&cooldown.summon_darkglare.remains>12
+actions+=/unstable_affliction,if=active_dot.unstable_affliction=0|ticking&dot.unstable_affliction.remains<4
+actions+=/siphon_life,if=dot.siphon_life.remains<4
+actions+=/siphon_life,cycle_targets=1,if=(active_enemies>1)&(dot.siphon_life.remains<4)
+actions+=/call_action_list,name=covenant,if=!covenant.necrolord
+actions+=/corruption,if=active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled)&dot.corruption.remains<2
+actions+=/corruption,cycle_targets=1,if=(active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled))&(dot.corruption.remains<2)
+actions+=/phantom_singularity,if=covenant.necrolord|covenant.night_fae|covenant.kyrian|covenant.none
+actions+=/malefic_rapture,if=soul_shard>4
+actions+=/call_action_list,name=darkglare_prep,if=(covenant.venthyr&(cooldown.impending_catastrophe.ready|dot.impending_catastrophe_dot.ticking)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&(cooldown.soul_rot.ready|dot.soul_rot.ticking)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))
+actions+=/dark_soul,if=cooldown.summon_darkglare.remains>time_to_die
+actions+=/call_action_list,name=item
+actions+=/call_action_list,name=se,strict=1,if=debuff.shadow_embrace.stack<(2-action.shadow_bolt.in_flight)|debuff.shadow_embrace.remains<3
+actions+=/rapid_contagion,if=in_pvp&soul_shards>3&basic_dots_ready
+actions+=/malefic_rapture,if=dot.impending_catastrophe_dot.ticking
+actions+=/malefic_rapture,if=dot.soul_rot.ticking
+actions+=/malefic_rapture,if=talent.phantom_singularity.enabled&(dot.phantom_singularity.ticking|soul_shard>3|time_to_die<cooldown.phantom_singularity.remains)
+actions+=/malefic_rapture,if=talent.sow_the_seeds.enabled
+actions+=/drain_life,if=buff.inevitable_demise.stack>40|buff.inevitable_demise.up&time_to_die<4
+actions+=/call_action_list,name=covenant
+actions+=/agony,if=refreshable
+actions+=/agony,cycle_targets=1,if=(active_enemies>1)&(refreshable)
+actions+=/corruption,if=refreshable&active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled)
+actions+=/unstable_affliction,if=refreshable
+actions+=/siphon_life,if=refreshable
+actions+=/siphon_life,cycle_targets=1,if=(active_enemies>1)&(refreshable)
+actions+=/corruption,cycle_targets=1,if=(active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled))&(refreshable)
+actions+=/drain_life,interrupt=1,if=in_pvp&health.pct<=70
+actions+=/drain_soul,interrupt=1
+actions+=/shadow_bolt
 
 actions.aoe=phantom_singularity
 actions.aoe+=/haunt
