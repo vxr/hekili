@@ -732,22 +732,22 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
         },
 
 
-        --[[ create_healthstone = {
+        create_healthstone = {
             id = 6201,
-            cast = 3,
+            cast = function () return 3 * haste end,
             cooldown = 0,
             gcd = "spell",
 
             spend = 0.02,
             spendType = "mana",
 
-            startsCombat = true,
+            startsCombat = false,
 
             handler = function ()
             end,
         },
 
-
+        --[[
         create_soulwell = {
             id = 29893,
             cast = 3,
@@ -779,6 +779,8 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
                 applyDebuff( "target", "curse_of_exhaustion" )
                 removeDebuff( "target", "curse_of_tongues" )
                 removeDebuff( "target", "curse_of_weakness" )
+                setCooldown( "curse_of_tongues", max( 6, cooldown.curse_of_tongues.remains ) )
+                setCooldown( "curse_of_weakness", max( 6, cooldown.curse_of_weakness.remains ) )
             end,
         },
         
@@ -823,9 +825,10 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             handler = function ()
                 applyDebuff( "target", "curse_of_tongues" )
                 removeDebuff( "target", "curse_of_exhaustion" )
-                removeDebuff( "target", "curse_oF_weakness" )
+                removeDebuff( "target", "curse_of_weakness" )
                 setCooldown( "curse_of_fragility", max( 6, cooldown.curse_of_fragility.remains ) )
                 setCooldown( "curse_of_weakness", max( 6, cooldown.curse_of_weakness.remains ) )
+                setCooldown( "curse_of_exhaustion", max( 6, cooldown.curse_of_exhaustion.remains ) )
             end,
         },
 
@@ -845,9 +848,10 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             handler = function ()
                 applyDebuff( "target", "curse_of_weakness" )
                 removeDebuff( "target", "curse_of_exhaustion" )
-                removeDebuff( "target", "curse_oF_tongues" )
+                removeDebuff( "target", "curse_of_tongues" )
                 setCooldown( "curse_of_fragility", max( 6, cooldown.curse_of_fragility.remains ) )
                 setCooldown( "curse_of_tongues", max( 6, cooldown.curse_of_tongues.remains ) )
+                setCooldown( "curse_of_exhaustion", max( 6, cooldown.curse_of_exhaustion.remains ) )
             end,
         },
 
@@ -1633,7 +1637,7 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
         summon_felhunter = {
             id = 691,
             cast = function () return ( buff.fel_domination.up and 0.5 or 6 ) * haste end,
-            cooldown = 0,
+            cooldown = 4,
             gcd = "spell",
 
             spend = function () return buff.fel_domination.up and 0 or 1 end,
@@ -1645,7 +1649,7 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             bind = "summon_pet",
 
             usable = function ()
-                if pet.alive then return false, "pet is alive"
+                if pet.alive or UnitExists("pet") then return false, "pet is alive"
                 elseif buff.grimoire_of_sacrifice.up then return false, "grimoire_of_sacrifice is up" end
                 return true
             end,

@@ -1783,6 +1783,9 @@ function Hekili:ProcessHooks( dispName, packName )
                 end
                 if slot.indicator == "cycle" then
                     slot_flags = "c"
+                elseif (state.bg or state.arena) and state.target.exists and state.target.outside40 then
+                    -- pvp convenience, cycle to new target when one goes out of range
+                    slot_flags = "c"
                 end
 	            if dispName == "Primary" then
                 	state.bussy.st = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
