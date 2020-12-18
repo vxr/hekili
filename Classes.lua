@@ -2280,6 +2280,14 @@ all:RegisterAbilities( {
         startsCombat = false,
         texture = 538745,
 
+        count = function()
+            return GetItemCount(5512)
+        end,
+
+        charges = function()
+            return GetItemCount(5512, false, true)
+        end,
+
         usable = function ()
             if GetItemCount( 5512 ) == 0 then return false, "requires healthstone in bags"
             elseif not IsUsableItem( 5512 ) then return false, "healthstone on CD"

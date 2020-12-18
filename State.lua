@@ -1896,12 +1896,30 @@ local mt_state = {
 
         elseif k == "cast_delay" then return 0
 
-        elseif k == "in_flight" then
+        elseif k == "is_cced" then
+            for aura_i = 1, 40 do
+                local _, _, icon, _, _, _, _, _, _, spellId = UnitDebuff("player", aura_i)
+                if icon == nil then
+                    return false
+                end
+                if ns.getControlSpellType(spellId) == "CC" then
+                    return true
+                end
+            end
+            return false
+
+        elseif k == "in_pvp" then
+            return t.bg or t.arena or t.buff.enlisted.up
+
+        elseif k == 'in_flight' then
             local data = t.action[ t.this_action ]
             if data then return data.in_flight end
             return false
 
-        elseif k == "in_flight_remains" then
+        elseif k == "mouseover_enemy" then
+            return UnitExists("mouseover") and UnitIsEnemy("player", "mouseover") and not UnitIsDead("mouseover") and UnitAffectingCombat("mouseover")
+
+        elseif k == 'in_flight_remains' then
             local data = t.action[ t.this_action ]
             if data then return data.in_flight.remains end
             return 0
@@ -2571,6 +2589,9 @@ local mt_target = {
 
         elseif k == "is_player" then
             return UnitIsPlayer( "target" )
+
+        elseif k == "is_vehicle" then
+            return UnitVehicleSeatCount("target") > 0
 
         elseif k == "player_class" then
             if not t.is_player then
