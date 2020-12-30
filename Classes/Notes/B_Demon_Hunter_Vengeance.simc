@@ -1,0 +1,80 @@
+# Demon Hunter Vengeance
+# December 13, 2020
+
+actions.precombat=bottled_flayedwing_toxin
+actions.precombat+=/use_item,name=azsharas_font_of_power
+
+# Executed every time the actor is available.
+actions+=/variable,name=brand_build,value=talent.agonizing_flames.enabled&talent.burning_alive.enabled&talent.charred_flesh.enabled
+actions+=/variable,name=extra_disrupt,value=solo&torghast
+actions+=/variable,name=should_taunt,value=toggle.custom1
+actions+=/variable,name=enemy_close,value=target.is_enemy&target.within6
+actions+=/variable,name=significant_fight,value=false
+actions+=/variable,name=significant_fight,value=true,if=solo&time>=4&target.time_to_die>=14&target.health_pct<=90
+actions+=/variable,name=significant_fight,value=true,if=in_pvp&target.is_player&target.health_pct>=60
+actions+=/variable,name=significant_fight,value=true,if=(raid|group)&target.exists&target.is_boss
+# PvP Trinkets
+actions+=/use_item,name=sinful_gladiators_medallion,if=is_cced
+actions+=/use_item,name=sinful_gladiators_emblem,if=incoming_damage_5s>0.20*health.max
+actions+=/disrupt
+actions+=/sigil_of_silence,if=variable.extra_disrupt&variable.enemy_close&debuff.casting.remains>1.35&cooldown.disrupt.remains>1.35
+actions+=/sigil_of_misery,if=variable.extra_disrupt&variable.enemy_close&debuff.casting.remains>1.35&cooldown.disrupt.remains>1.35&(query_time-action.sigil_of_silence.lastCast>1.35)
+actions+=/consume_magic
+actions+=/reverse_magic
+actions+=/torment,if=variable.should_taunt&!solo&combat&target.is_enemy&!target.is_player&target.threat<2&target.affecting_combat&!target.on_me&target.on_partyraid
+actions+=/throw_glaive,if=buff.fel_bombardment.stack=5&(buff.immolation_aura.up|!buff.metamorphosis.up)
+actions+=/call_action_list,name=brand,if=variable.brand_build
+actions+=/call_action_list,name=defensives
+actions+=/call_action_list,name=cooldowns
+actions+=/call_action_list,name=normal
+
+# Fiery Brand Rotation
+actions.brand=fiery_brand
+actions.brand+=/immolation_aura,if=variable.enemy_close&dot.fiery_brand.ticking
+
+actions.cooldowns=potion,if=0
+actions.cooldowns+=/healthstone,if=combat&health.pct<=40&incoming_damage_4s>0.25*health.max
+actions.cooldowns+=/phial_of_serenity,if=combat&((health.pct <= 35 & incoming_damage_2s > 0.35 * health.max)|(health.pct<=20&incoming_damage_2s>0.20*health.max)|health.pct<=10)
+actions.cooldowns+=/potion,if=combat&((health.pct <= 25 & incoming_damage_2s > 0.25 * health.max)|(health.pct<=15&incoming_damage_2s>0.15*health.max)|health.pct<=10)
+actions.cooldowns+=/potion,if=variable.significant_fight&health.pct<50&incoming_damage_3s>0.65*health.max
+actions.cooldowns+=/concentrated_flame,if=(!dot.concentrated_flame_burn.ticking&!action.concentrated_flame.in_flight|full_recharge_time<gcd.max)
+actions.cooldowns+=/worldvein_resonance,if=buff.lifeblood.stack<3
+actions.cooldowns+=/memory_of_lucid_dreams
+# Hold Reaping Flames for execute range or kill buffs, if possible. Always try to get the lowest cooldown based on available enemies.
+actions.cooldowns+=/reaping_flames,if=target.time_to_die<1.5|((target.health.pct>80|target.health.pct<=20)&(active_enemies=1|fight_remains>29))|(target.time_to_pct_20>30&(active_enemies=1|fight_remains>44))
+# Default fallback for usable essences.
+actions.cooldowns+=/heart_essence
+actions.cooldowns+=/use_item,effect_name=cyclotronic_blast,if=buff.memory_of_lucid_dreams.down
+actions.cooldowns+=/use_item,name=ashvanes_razor_coral,if=debuff.razor_coral_debuff.down|debuff.conductive_ink_debuff.up&target.health.pct<31|target.time_to_die<20
+# Default fallback for usable items.
+# actions.cooldowns+=/use_items,if=!raid|(target.is_boss&target.on_me)
+# TRINKETS #
+# Provides long lasting armor
+actions.cooldowns+=/use_item,name=bladedancers_armor_kit,if=variable.significant_fight&incoming_physical_5s>=0.20*health.max
+# Shorter physical shields
+actions.cooldowns+=/use_item,name=darkmoon_deck_indomitable,if=variable.significant_fight&incoming_physical_4s>=0.20*health.max
+actions.cooldowns+=/sinful_brand,if=!dot.sinful_brand.ticking
+actions.cooldowns+=/the_hunt
+actions.cooldowns+=/fodder_to_the_flame
+actions.cooldowns+=/elysian_decree,if=variable.enemy_close
+actions.cooldowns+=/arcane_torrent,if=fury<=fury.max-15&my_enemies>1&target.distance<=8&combat
+
+# Defensives
+actions.defensives=demon_spikes,if=tanking&((full_recharge_time<1&incoming_damage_3s)|(active_enemies>3&incoming_damage_3s&buff.demon_spikes.down)|(incoming_damage_5s>0.25*health.max))
+actions.defensives+=/soul_barrier,if=(active_enemies>3&incoming_damage_3s&buff.demon_spikes.down)|(incoming_damage_5s>0.4*health.max)
+actions.defensives+=/bulk_extraction,if=health.percent<50
+actions.defensives+=/metamorphosis,if=!(talent.demonic.enabled)&(!covenant.venthyr|!dot.sinful_brand.ticking)|(boss&fight_remains<15)
+actions.defensives+=/fiery_brand
+
+# Normal Rotation
+actions.normal+=/infernal_strike,if=full_recharge_time<1&(!talent.flame_crash.enabled|(dot.sigil_of_flame.remains<3&!action.infernal_strike.sigil_placed))
+actions.normal+=/bulk_extraction
+actions.normal+=/spirit_bomb,if=((buff.metamorphosis.up&talent.fracture.enabled&soul_fragments>=3)|soul_fragments>=4)
+actions.normal+=/fel_devastation,if=tanking&(active_enemies>1|talent.demonic.enabled)
+actions.normal+=/soul_cleave,if=((talent.spirit_bomb.enabled&soul_fragments=0)|!talent.spirit_bomb.enabled)&((talent.fracture.enabled&fury>=55)|(!talent.fracture.enabled&fury>=70)|cooldown.fel_devastation.remains>target.time_to_die|(buff.metamorphosis.up&((talent.fracture.enabled&fury>=35)|(!talent.fracture.enabled&fury>=50))))
+actions.normal+=/immolation_aura,if=variable.enemy_close&((variable.brand_build&cooldown.fiery_brand.remains>10)|!variable.brand_build)&fury<=90
+actions.normal+=/felblade,if=fury<=60
+actions.normal+=/fracture,if=((talent.spirit_bomb.enabled&soul_fragments<=3)|(!talent.spirit_bomb.enabled&((buff.metamorphosis.up&fury<=55)|(buff.metamorphosis.down&fury<=70))))
+actions.normal+=/sigil_of_flame,if=!(covenant.kyrian&runeforge.razelikhs_defilement)&variable.enemy_close
+actions.normal+=/shear
+actions.normal+=/throw_glaive
