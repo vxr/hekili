@@ -2626,10 +2626,10 @@ local mt_target = {
         elseif k == "threat" then
             return UnitThreatSituation("player", "target")
 
-        elseif k == "targeting_me" then
+        elseif k == "targeting_me" or k == "on_me" then
             return UnitIsUnit("targettarget", "player")
 
-        elseif k == "targeting_partyraid" then
+        elseif k == "targeting_partyraid" or k == "on_partyraid" then
             return UnitIsPlayer("targettarget") and (UnitInParty("targettarget") or UnitInRaid("targettarget"))
 
         elseif k:sub(1, 6) == 'within' then
