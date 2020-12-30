@@ -2618,7 +2618,7 @@ local mt_target = {
             return UnitExists( "target" ) and UnitIsFriend( "target", "player" )
 
         elseif k == "is_enemy" then
-            return UnitExists("target") and UnitIsEnemy("player", "target")
+            return UnitExists("target") and (UnitIsEnemy("player", "target") or UnitCanAttack("player", "target"))
 
         elseif k == "affecting_combat" then
             return UnitExists("target") and UnitAffectingCombat("target")
