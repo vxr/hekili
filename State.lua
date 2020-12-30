@@ -1799,8 +1799,8 @@ local mt_state = {
         elseif k == "moving" then
             return ( GetUnitSpeed("player") > 0 )
 
-        elseif k == "solo" then
-            return GetNumGroupMembers() == 0
+        elseif k == 'solo' then
+            return GetNumGroupMembers() <= 1
 
         elseif k == "group" then
             return GetNumGroupMembers() > 1
