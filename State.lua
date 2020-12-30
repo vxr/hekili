@@ -1876,6 +1876,30 @@ local mt_state = {
             end
             return false
 
+        elseif k == "is_rooted" then
+            for aura_i = 1, 40 do
+                local _, _, icon, _, _, _, _, _, _, spellId = UnitDebuff("player", aura_i)
+                if icon == nil then
+                    return false
+                end
+                if ns.getControlSpellType(spellId) == "Root" then
+                    return true
+                end
+            end
+            return false
+
+        elseif k == "is_snared" then
+            for aura_i = 1, 40 do
+                local _, _, icon, _, _, _, _, _, _, spellId = UnitDebuff("player", aura_i)
+                if icon == nil then
+                    return false
+                end
+                if ns.getControlSpellType(spellId) == "Snare" then
+                    return true
+                end
+            end
+            return false            
+
         elseif k == "in_pvp" then
             return t.bg or t.arena or t.buff.enlisted.up
 
