@@ -32,6 +32,8 @@ actions+=/variable,name=significant_fight,value=true,if=(raid|group)&target.exis
 actions+=/variable,name=darkglare_cd,value=180
 actions+=/variable,name=darkglare_cd,value=cooldown.summon_darkglare.remains,if=variable.significant_fight
 ## END VARIABLES ##
+actions+=/curse_of_tongues,if=debuff.curse_of_tongues.up&refreshable
+actions+=/curse_of_weakness,if=debuff.curse_of_weakness.up&refreshable
 actions+=/call_action_list,name=aoe,strict=1,if=active_enemies>3
 actions+=/phantom_singularity,if=time>30
 actions+=/call_action_list,name=darkglare_check,if=(covenant.venthyr&dot.impending_catastrophe_dot.ticking&variable.darkglare_cd<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&dot.soul_rot.ticking&variable.darkglare_cd<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&dot.phantom_singularity.ticking&dot.phantom_singularity.remains<2)
