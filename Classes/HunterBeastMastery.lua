@@ -735,7 +735,7 @@ if UnitClassBase( "player" ) == "HUNTER" then
 
         aspect_of_the_turtle = {
             id = 186265,
-            cast = 8,
+            cast = 0,
             cooldown = function() return ( ( legendary.call_of_the_wild.enabled and 0.75 or 1 ) * 180 ) + ( conduit.harmony_of_the_tortollan.mod * 0.001 ) end,
             gcd = "spell",
             channeled = true,
@@ -814,6 +814,7 @@ if UnitClassBase( "player" ) == "HUNTER" then
         barrage = {
             id = 120360,
             cast = function () return 3 * haste end,
+            cast_while_moving = 1,
             cooldown = 20,
             gcd = "spell",
             channeled = true,

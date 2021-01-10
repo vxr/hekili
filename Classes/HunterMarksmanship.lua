@@ -421,6 +421,7 @@ if UnitClassBase( "player" ) == "HUNTER" then
         barrage = {
             id = 120360,
             cast = 3,
+            cast_while_moving = 1,
             channeled = true,
             cooldown = 20,
             gcd = "spell",
@@ -752,6 +753,7 @@ if UnitClassBase( "player" ) == "HUNTER" then
         rapid_fire = {
             id = 257044,
             cast = function () return ( 2 * haste ) end,
+            cast_while_moving = 1,
             channeled = true,
             cooldown = function () return ( buff.trueshot.up and 8 or 20 ) * haste end,
             gcd = "spell",
@@ -809,6 +811,7 @@ if UnitClassBase( "player" ) == "HUNTER" then
         steady_shot = {
             id = 56641,
             cast = 1.8,
+            cast_while_moving = 1,
             cooldown = 0,
             gcd = "spell",
 
