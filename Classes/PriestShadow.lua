@@ -1346,7 +1346,9 @@ if UnitClassBase( "player" ) == "PRIEST" then
             interrupt = true,
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readytime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             handler = function ()
                 interrupt()

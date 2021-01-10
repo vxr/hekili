@@ -720,7 +720,9 @@ if UnitClassBase( "player" ) == "DEATHKNIGHT" then
             toggle = "interrupts",
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,            
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,            
 
             handler = function ()
                 interrupt()
@@ -1252,7 +1254,10 @@ if UnitClassBase( "player" ) == "DEATHKNIGHT" then
             toggle = "interrupts",
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             handler = function ()
                 if conduit.spirit_drain.enabled then gain( conduit.spirit_drain.mod * 0.1, "runic_power" ) end
@@ -1389,7 +1394,9 @@ if UnitClassBase( "player" ) == "DEATHKNIGHT" then
             texture = 136214,
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             handler = function ()
                 interrupt()
