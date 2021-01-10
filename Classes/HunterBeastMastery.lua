@@ -1472,6 +1472,28 @@ if UnitClassBase( "player" ) == "HUNTER" then
             end,
         },
 
+        summon_core_hound = {
+            id = 83242,
+            cast = 0,
+            cooldown = 0,
+            gcd = "spell",
+
+            spend = 0,
+            spendType = "focus",
+
+            startsCombat = false,
+            texture = 'Interface\\ICONS\\Ability_Hunter_BeastCall',
+
+            essential = true,
+            nomounted = true,
+
+            usable = function () return not pet.exists, "requires no active pet" end,
+
+            handler = function ()
+                summonPet( "made_up_pet", 3600, "ferocity" )
+            end,
+        },
+
 
         tar_trap = {
             id = 187698,
