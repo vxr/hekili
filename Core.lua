@@ -709,7 +709,7 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
                 elseif rWait <= state.cooldown.global_cooldown.remains and not state.spec.canCastWhileCasting and ability.gcd ~= "off" then
                     -- if debug then self:Debug( "Only off-GCD abilities would be usable before the currently selected ability; skipping..." ) end
 
-                elseif GetUnitSpeed("player") > 0 and ability.cast > 0 then
+                elseif GetUnitSpeed("player") > 0 and ability.cast > 0 and not ability.cast_while_moving then
                     -- bussy cant cast while moving
                 
                 else
