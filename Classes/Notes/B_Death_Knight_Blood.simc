@@ -78,14 +78,14 @@ actions.standard+=/heart_strike,if=!talent.blooddrinker.enabled&death_and_decay.
 actions.standard+=/blood_boil,if=target.is_enemy&target.in_range&charges_fractional>=1.8&(buff.hemostasis.stack<=(5-spell_targets.blood_boil)|spell_targets.blood_boil>2)
 # Mark of Blood does not pandemic-extend.
 actions.standard+=/mark_of_blood,if=debuff.mark_of_blood.down&fight_remains>7.5
-actions.standard+=/death_and_decay,if=(buff.crimson_scourge.up&talent.relish_in_blood.enabled)&runic_power.deficit>10
+actions.standard+=/death_and_decay,if=(buff.crimson_scourge.up&talent.relish_in_blood.enabled)&runic_power.deficit>10&target.within6
 actions.standard+=/bonestorm,if=runic_power>=100&!buff.dancing_rune_weapon.up
 actions.standard+=/death_strike,if=runic_power.deficit<=(15+buff.dancing_rune_weapon.up*5+spell_targets.heart_strike*talent.heartbreaker.enabled*2)|fight_remains<10
-actions.standard+=/death_and_decay,if=spell_targets.death_and_decay>=3
+actions.standard+=/death_and_decay,if=spell_targets.death_and_decay>=3&target.within6
 actions.standard+=/heart_strike,if=buff.dancing_rune_weapon.up|rune.time_to_4<gcd
 actions.standard+=/blood_boil,if=target.is_enemy&target.in_range&buff.dancing_rune_weapon.up
 actions.standard+=/blood_tap,if=rune.time_to_3>gcd
-actions.standard+=/death_and_decay,if=buff.crimson_scourge.up|talent.rapid_decomposition.enabled|spell_targets.death_and_decay>=2
+actions.standard+=/death_and_decay,if=target.within6&(buff.crimson_scourge.up|talent.rapid_decomposition.enabled|spell_targets.death_and_decay>=2)
 actions.standard+=/consumption,if=buff.bone_shield.remains>3*gcd
 actions.standard+=/blood_boil,if=target.is_enemy&target.in_range&charges_fractional>=1.1&buff.bone_shield.remains>3*gcd
 actions.standard+=/heart_strike,if=rune.time_to_3<gcd|buff.bone_shield.stack>7&buff.bone_shield.remains>rune.time_to_3+gcd
