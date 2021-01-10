@@ -1718,6 +1718,9 @@ local mt_state = {
         elseif k == 'boss' then
             return ( t.encounterID > 0 or ( UnitCanAttack( "player", "target" ) and ( UnitClassification( "target" ) == "worldboss" or UnitLevel( "target" ) == -1 ) ) ) == true
 
+        elseif k == 'group_focus_exists' then
+            return (UnitExists("focus") and (UnitInParty("focus") or UnitInRaid("focus"))) or false
+
         elseif k == "cycle" then
             return false
 
@@ -2587,6 +2590,9 @@ local mt_target = {
             end
 
             return true ]]
+
+        elseif k == "is_mouseover" then
+            return UnitExists("target") and UnitIsUnit("target", "mouseover")
 
         elseif k == "is_demon" then
             return UnitCreatureType( "target" ) == PET_TYPE_DEMON
