@@ -550,13 +550,17 @@ if UnitClassBase( "player" ) == "HUNTER" then
             cooldown = 24,
             gcd = "off",
 
+            interrupt = true,
+
             startsCombat = true,
             texture = 249170,
 
             toggle = "interrupts",
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             handler = function ()
                 if conduit.reversal_of_fortune.enabled then
