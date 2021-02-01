@@ -1559,7 +1559,9 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             toggle = "interrupts",
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             usable = function ()
                 return pet.felhunter.alive or buff.grimoire_of_sacrifice.up, "requires imp or grimoire_of_sacrifice"
