@@ -672,10 +672,10 @@ do
     local pulseRange = TOOLTIP_UPDATE_TIME
     local pulseFlash = 0.5
 
-    local oocRefresh = 1
+    local oocRefresh = 0.2
     local icRefresh = {
-        Primary = 0.1,
-        AOE = 0.2,
+        Primary = 0.05,
+        AOE = 0.1,
         Interrupts = 1,
         Defensives = 1,
         Cooldowns = 0.2
