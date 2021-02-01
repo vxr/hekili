@@ -24,6 +24,20 @@ local insert, remove, sort, unpack, wipe = table.insert, table.remove, table.sor
 local RC = LibStub( "LibRangeCheck-2.0" )
 local LSR = LibStub( "SpellRange-1.0" )
 
+local npmod = nil
+if _G["ElvUI"] then
+    npmod = _G["ElvUI"][1]:GetModule('NamePlates')
+end
+
+local healerSpecIDs = {
+    [65] = true,     --Paladin Holy
+    [105] = true,    --Druid Restoration
+    [256] = true,    --Priest Discipline
+    [257] = true,    --Priest Holy
+    [264] = true,    --Shaman Restoration
+    [270] = true,    --Monk Mistweaver
+}
+
 
 local class = Hekili.Class
 local scripts = Hekili.Scripts
@@ -1715,11 +1729,44 @@ local mt_state = {
         elseif k == "has_full_control" then
             return HasFullControl()
 
+        elseif k == "time_to_interrupt" then
+            return t.timeToInterrupt()
+
+        elseif k == "in_combat_lockdown" then
+            return InCombatLockdown()
+
         elseif k == 'boss' then
             return ( t.encounterID > 0 or ( UnitCanAttack( "player", "target" ) and ( UnitClassification( "target" ) == "worldboss" or UnitLevel( "target" ) == -1 ) ) ) == true
 
         elseif k == 'group_focus_exists' then
             return (UnitExists("focus") and (UnitInParty("focus") or UnitInRaid("focus"))) or false
+
+        elseif k == 'safe_mouseover' then
+            if not t.mouseover_enemy then
+                return false
+            end
+            if UnitIsUnit("target", "mouseover") then
+                return true
+            elseif UnitIsUnit("target", "pettarget") then
+                return true
+            end
+            if t.group then
+                for i = 1,5 do
+                    local partyUnitId = "party" .. tostring(i) .. "target"
+                    if UnitIsUnit("target", partyUnitId) then
+                        return true
+                    end
+                end
+            end
+            if t.raid then
+                for i = 1,40 do
+                    local partyUnitId = "raid" .. tostring(i) .. "target"
+                    if UnitIsUnit("target", partyUnitId) then
+                        return true
+                    end
+                end
+            end
+            return false
 
         elseif k == "cycle" then
             return false
@@ -1764,6 +1811,16 @@ local mt_state = {
 
         elseif k == "longest_ttd" then
             return Hekili:GetGreatestTTD()
+
+        elseif k:sub(1, 11) == "ttds_after_" then
+            local ttd_after = k:match( "^ttds_after_(%d+)$" )
+            if not ttd_after then
+                return state.active_enemies
+            end
+
+            local n = state.active_enemies
+
+            return min(state.active_enemies, Hekili:GetNumTTDsAfter(tonumber(ttd_after)))
 
         elseif k == "expected_combat_length" then
             if not t.boss then return 3600 end
@@ -1918,16 +1975,29 @@ local mt_state = {
             end
             return false
 
-        elseif k == "in_pvp" then
-            return t.bg or t.arena or t.buff.enlisted.up
-
         elseif k == 'in_flight' then
             local data = t.action[ t.this_action ]
             if data then return data.in_flight end
             return false
 
         elseif k == "mouseover_enemy" then
-            return UnitExists("mouseover") and UnitIsEnemy("player", "mouseover") and not UnitIsDead("mouseover") and UnitAffectingCombat("mouseover")
+            if not UnitExists("mouseover") then
+                return false
+            end
+            if not UnitIsEnemy("player", "mouseover") and not UnitCanAttack("player", "mouseover") then
+                return false
+            end
+            if UnitIsDead("mouseover") then
+                return false
+            end
+            if UnitAffectingCombat("mouseover") then
+                return true
+            end
+            local uName, uRealm = UnitName("mouseover")
+            if uName ~= nil and strfind(uName, "Training Dummy") then
+                return true
+            end
+            return false
 
         elseif k == 'in_flight_remains' then
             local data = t.action[ t.this_action ]
@@ -2633,6 +2703,36 @@ local mt_target = {
             local localizedClass, englishClass, classIndex = UnitClass("target")
             return classIndex
 
+        elseif k == 'is_healer' then
+            if not t.is_player then
+                return false
+            end
+            if npmod ~= nil and npmod.Healers ~= nil then
+                if npmod.Healers[UnitName("target")] then
+                    return true
+                end
+            end
+            if state.arena then
+                local numOpps = GetNumArenaOpponentSpecs()
+                if numOpps >= 1 then
+                    for i = 1, numOpps do
+                        if UnitIsUnit("target", format('arena%d', i)) then
+                            local opSpec, gender = GetArenaOpponentSpec(i)
+                            if healerSpecIDs[opSpec] then
+                                return true
+                            end
+                            return false
+                        end
+                    end
+                end
+            end
+            -- local inspect_id = GetInspectSpecialization("target")
+            -- print(inspect_id)
+            -- if healerSpecIDs[inspect_id] then
+            --     return true
+            -- end
+            return false
+
         elseif k == "is_player_caster" then
             local player_class = t.player_class
             if player_class == 2 or player_class == 5 or player_class == 7 or player_class == 8 or player_class == 9 then
@@ -2672,6 +2772,13 @@ local mt_target = {
 
         elseif k == "targeting_partyraid" or k == "on_partyraid" then
             return UnitIsPlayer("targettarget") and (UnitInParty("targettarget") or UnitInRaid("targettarget"))
+
+        elseif k == 'is_dummy' then
+            local uName, uRealm = UnitName("target")
+            if uName ~= nil and strfind(uName, "Training Dummy") then
+                return true
+            end
+            return false
 
         elseif k:sub(1, 6) == 'within' then
             local maxR = k:match( "^within(%d+)$" )
