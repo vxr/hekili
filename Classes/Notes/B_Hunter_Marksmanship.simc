@@ -4,13 +4,13 @@
 actions.precombat+=/bottled_flayedwing_toxin
 actions.precombat+=/tar_trap,if=runeforge.soulforge_embers
 actions.precombat+=/misdirection,if=group_focus_exists&cooldown.misdirection.ready&buff.misdirection.down
-actions.precombat+=/double_tap,precast_time=10,if=active_enemies>1|!covenant.kyrian&!talent.volley
+actions.precombat+=/double_tap,precast_time=10,if=target.exists&target.within40&(active_enemies>1|!covenant.kyrian&!talent.volley)
 actions.precombat+=/aimed_shot,if=active_enemies<3&(!covenant.kyrian&!talent.volley|active_enemies<2)
 actions.precombat+=/steady_shot,if=active_enemies>2|(covenant.kyrian|talent.volley)&active_enemies=2
 
 actions.vars=variable,name=significant_fight,value=false
-actions.vars+=/variable,name=significant_fight,value=true,if=solo&time>=4&target.time_to_die>=14&target.health_pct<=90
-actions.vars+=/variable,name=significant_fight,value=true,if=in_pvp&target.is_player&target.health_pct>=60
+# actions.vars+=/variable,name=significant_fight,value=true,if=solo&time>=4&target.time_to_die>=14&target.health_pct<=90
+# actions.vars+=/variable,name=significant_fight,value=true,if=in_pvp&target.is_player&target.health_pct>=60
 actions.vars+=/variable,name=significant_fight,value=true,if=(raid|group)&target.exists&target.is_boss
 actions.vars+=/variable,name=significant_fight,value=true,if=group&!raid&time>=2&target.health_max>=100000&target.health_pct<=95&target.time_to_die>=20
 
@@ -20,10 +20,14 @@ actions.defense+=/aspect_of_the_turtle,if=health.pct<=15
 
 actions+=/call_action_list,name=vars
 actions+=/counter_shot,use_while_casting=1
+actions+=/scatter_shot,use_while_casting=1,if=cooldown.counter_shot.remains>1
 # TODO:  This will need support to allow Counter Shot when target is not casting.
 actions+=/counter_shot,line_cd=30,if=runeforge.sephuzs_proclamation|soulbind.niyas_tools_poison|(conduit.reversal_of_fortune&!runeforge.sephuzs_proclamation)
 actions+=/call_action_list,name=defense
+actions+=/sniper_shot,if=target.outside45
 actions+=/tranquilizing_shot
+actions+=/bursting_shot,if=in_pvp&target.within7
+actions+=/viper_sting,if=target.is_healer
 # Use this on cooldown if it's the only on-use. If you have another on-use with a longer cooldown, stack that with Trueshot when their cooldowns conflict, so wait until it's on cooldown to use this, otherwise continue to use on cooldown.
 actions+=/use_item,name=dreadfire_vessel
 # If two on-uses are ready and competing for a Trueshot sync, assume the longer cd has a stronger effect and prefer that unless it's already on cooldown, otherwise use the one that's off cooldown. If a trinket is ready and another stronger (assumed from longer cooldown) on-use will also be ready by the time Trueshot comes back off cooldown, then use it if the shared 20 second cd it triggers won't interfere with the upcoming Trueshot sync'd on-use. If a trinket could be used and still come back off cooldown for a future Trueshot, it's safe to use, preferring the longest cooldown if two are ready. If the fight is going to end before your next Trueshot, just start using trinkets to make sure they get used.
@@ -43,11 +47,11 @@ actions.cds+=/ancestral_call,if=buff.trueshot.up|fight_remains<16
 actions.cds+=/fireblood,if=buff.trueshot.up|fight_remains<9
 actions.cds+=/lights_judgment,if=buff.trueshot.down
 actions.cds+=/bag_of_tricks,if=buff.trueshot.down
-# actions.cds+=/potion,if=buff.trueshot.up&buff.bloodlust.up|buff.trueshot.up&target.health.pct<20|fight_remains<26
+actions.cds+=/potion,if=variable.significant_fight&(buff.bloodlust.up|buff.trueshot.up)
 
 actions.st=steady_shot,if=talent.steady_focus&(prev_gcd.1.steady_shot&buff.steady_focus.remains<5|buff.steady_focus.down)
 actions.st+=/kill_shot
-actions.st+=/double_tap,if=covenant.kyrian&cooldown.resonating_arrow.remains<gcd|!covenant.kyrian&!covenant.night_fae|covenant.night_fae&(cooldown.wild_spirits.remains<gcd|cooldown.trueshot.remains>55)|target.time_to_die<15
+actions.st+=/double_tap,if=target.exists&target.within40&(covenant.kyrian&cooldown.resonating_arrow.remains<gcd|!covenant.kyrian&!covenant.night_fae|covenant.night_fae&(cooldown.wild_spirits.remains<gcd|cooldown.trueshot.remains>55)|target.time_to_die<15)
 actions.st+=/flare,line_cd=25,if=tar_trap.up&runeforge.soulforge_embers
 actions.st+=/tar_trap,if=runeforge.soulforge_embers&tar_trap.remains<gcd&cooldown.flare.remains<gcd
 actions.st+=/explosive_shot,if=target.time_to_die>=4
@@ -57,7 +61,7 @@ actions.st+=/death_chakram,if=focus+cast_regen<focus.max
 actions.st+=/a_murder_of_crows
 actions.st+=/resonating_arrow,if=target.is_mouseover
 actions.st+=/volley,if=fight_remains>=6&target.is_mouseover&(buff.precise_shots.down|!talent.chimaera_shot|active_enemies<2)
-actions.st+=/trueshot,if=fight_remains>=15&(buff.precise_shots.down|buff.resonating_arrow.up|buff.wild_spirits.up|buff.volley.up&active_enemies>1)
+actions.st+=/trueshot,if=fight_remains>=15&target.within40&target.exists&(buff.precise_shots.down|buff.resonating_arrow.up|buff.wild_spirits.up|buff.volley.up&active_enemies>1)
 # TODO: Review action.serpent_sting.in_flight_to_target
 actions.st+=/aimed_shot,cycle_targets=1,if=buff.precise_shots.down|(buff.trueshot.up|full_recharge_time<gcd+cast_time)&(!talent.chimaera_shot|active_enemies<2)|buff.trick_shots.remains>execute_time&active_enemies>1
 actions.st+=/rapid_fire,if=focus+cast_regen<focus.max&(buff.trueshot.down|!runeforge.eagletalons_true_focus)&(buff.double_tap.down|talent.streamline)
@@ -69,7 +73,7 @@ actions.st+=/rapid_fire,if=focus+cast_regen<focus.max&(buff.double_tap.down|tale
 actions.st+=/steady_shot
 
 actions.trickshots=steady_shot,if=talent.steady_focus&in_flight&buff.steady_focus.remains<5
-actions.trickshots+=/double_tap,if=covenant.kyrian&cooldown.resonating_arrow.remains<gcd|!covenant.kyrian&!covenant.night_fae|covenant.night_fae&(cooldown.wild_spirits.remains<gcd|cooldown.trueshot.remains>55)|target.time_to_die<10
+actions.trickshots+=/double_tap,if=target.exists&target.within40&(covenant.kyrian&cooldown.resonating_arrow.remains<gcd|!covenant.kyrian&!covenant.night_fae|covenant.night_fae&(cooldown.wild_spirits.remains<gcd|cooldown.trueshot.remains>55)|target.time_to_die<10)
 actions.trickshots+=/tar_trap,if=runeforge.soulforge_embers&tar_trap.remains<gcd&cooldown.flare.remains<gcd
 actions.trickshots+=/flare,line_cd=25,if=tar_trap.up&runeforge.soulforge_embers
 actions.trickshots+=/explosive_shot,if=target.time_to_die>=4
@@ -77,7 +81,7 @@ actions.trickshots+=/wild_spirits,if=target.is_mouseover&variable.significant_fi
 actions.trickshots+=/resonating_arrow
 actions.trickshots+=/volley,if=fight_remains>=6&target.is_mouseover
 actions.trickshots+=/barrage
-actions.trickshots+=/trueshot,if=fight_remains>=15
+actions.trickshots+=/trueshot,if=fight_remains>=15&target.within40&target.exists
 actions.trickshots+=/rapid_fire,if=buff.trick_shots.remains>=execute_time&runeforge.surging_shots&buff.double_tap.down
 actions.trickshots+=/aimed_shot,cycle_targets=1,if=buff.trick_shots.remains>=execute_time&(buff.precise_shots.down|full_recharge_time<cast_time+gcd|buff.trueshot.up)
 actions.trickshots+=/death_chakram,if=focus+cast_regen<focus.max
