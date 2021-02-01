@@ -216,6 +216,11 @@ if UnitClassBase( "player" ) == "ROGUE" then
             duration = 10,
             max_stack = 1,
         },
+        plunder_armor = {
+            id = 198529,
+            duration = 10,
+            max_stack = 1,
+        },
         pistol_shot = {
             id = 185763,
             duration = 6,
@@ -627,6 +632,20 @@ if UnitClassBase( "player" ) == "ROGUE" then
             end,
         },
 
+        plunder_armor = {
+            id = 198529,
+            cast = 0,
+            cooldown = 120,
+            gcd = "spell",
+            spend = 0,
+            spendType = "energy",
+            startsCombat = true,
+            usable = function () return target.is_player end,
+            handler = function ()
+                applyDebuff("target", "plunder_armor", 10)
+            end,
+        },
+
 
         blade_flurry = {
             id = 13877,
@@ -943,7 +962,7 @@ if UnitClassBase( "player" ) == "ROGUE" then
             id = 1766,
             cast = 0,
             cooldown = 15,
-            gcd = "spell",
+            gcd = "off",
 
             toggle = "interrupts", 
             interrupt = true,
@@ -952,7 +971,9 @@ if UnitClassBase( "player" ) == "ROGUE" then
             texture = 132219,
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return max(state.timeToInterrupt() - 0.25, 0)
+            end,
 
             handler = function ()
                 interrupt()
