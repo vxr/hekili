@@ -384,6 +384,26 @@ if UnitClassBase( "player" ) == "HUNTER" then
             end,
         },
 
+        viper_sting = {
+            id = 202797,
+            cast = 0,
+            cooldown = 30,
+            gcd = "spell",
+            startsCombat = true,
+        },
+
+        sniper_shot = {
+            id = 203155,
+            cast = 2.8,
+            cooldown = 10,
+            gcd = "spell",
+
+            spend = 40,
+            spendType = "focus",
+
+            startsCombat = true,
+        },
+
 
         arcane_shot = {
             id = 185358,
@@ -541,6 +561,29 @@ if UnitClassBase( "player" ) == "HUNTER" then
             handler = function ()
                 if talent.calling_the_shots.enabled then cooldown.trueshot.expires = max( 0, cooldown.trueshot.expires - 2.5 ) end
                 removeStack( "precise_shots" )
+            end,
+        },
+
+
+        scatter_shot = {
+            id = 213691,
+            cast = 0,
+            cooldown = 30,
+            gcd = "spell",
+
+            interrupt = true,
+
+            startsCombat = true,
+
+            toggle = "interrupts",
+
+            debuff = "casting",
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
+
+            handler = function ()
+                interrupt()
             end,
         },
 
@@ -918,6 +961,24 @@ if UnitClassBase( "player" ) == "HUNTER" then
 
             handler = function ()
                 applyDebuff( "target", "tar_trap" )
+            end,
+        },
+
+
+        tranquilizing_shot = {
+            id = 19801,
+            cast = 0,
+            cooldown = 10,
+            gcd = "spell",
+
+            startsCombat = true,
+            texture = 136020,
+
+            usable = function () return buff.dispellable_enrage.up or buff.dispellable_magic.up, "requires enrage or magic effect" end,
+            handler = function ()
+                removeBuff( "dispellable_enrage" )
+                removeBuff( "dispellable_magic" )
+                if level > 53 then gain( 10, "focus" ) end
             end,
         },
 
