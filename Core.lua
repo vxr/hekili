@@ -1906,11 +1906,20 @@ function Hekili:ProcessHooks( dispName, packName )
                 else
                     this_slot_time = string.format("%x", this_slot_time * 100)
                 end
+                
                 if slot.indicator == "cycle" then
                     slot_flags = "c"
-                elseif (state.bg or state.arena) and state.target.exists and state.target.outside40 then
+                elseif (state.bg or state.arena) and state.target.exists then
+                    local out_of_range = state.target.outside40
+                    if class.abilities['sniper_shot'] ~= nil and class.abilities['sniper_shot'].known then
+                        out_of_range = state.target.outside62
+                    elseif state.class.file == "HUNTER" then
+                        out_of_range = state.target.outside45
+                    end
                     -- pvp convenience, cycle to new target when one goes out of range
-                    slot_flags = "c"
+                    if out_of_range then
+                        slot_flags = "c"
+                    end
                 end
 	            if dispName == "Primary" then
                 	state.bussy.st = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)
