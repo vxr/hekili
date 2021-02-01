@@ -264,7 +264,7 @@ if UnitClassBase( "player" ) == "WARLOCK" then
 
                             local np = state.talent.nether_portal.enabled and FindUnitBuffByID( "player", 267218 )
 
-                            if ( not state.talent.doom.enabled or state.action.doom.lastCast - now < 30 ) and 
+                            if ( not state.talent.doom.enabled or state.action.doom.lastCast - now < 30 or state.target.time_to_die < 20) and 
                             ( state.cooldown.demonic_strength.remains > 4 or not state.talent.demonic_strength.enabled or state.talent.demonic_consumption.enabled ) and 
                             ( state.cooldown.nether_portal.remains > 4 or not state.talent.nether_portal.enabled ) and
                             ( state.cooldown.grimoire_felguard.remains > 4 or not state.talent.grimoire_felguard.enabled ) and 
@@ -1010,7 +1010,7 @@ if UnitClassBase( "player" ) == "WARLOCK" then
             known = function () return IsSpellKnownOrOverridesKnown( 119914 ) end,
             cast = 0,
             cooldown = 30,
-            gcd = "spell",
+            gcd = "off",
 
             startsCombat = true,
 
@@ -1018,7 +1018,9 @@ if UnitClassBase( "player" ) == "WARLOCK" then
             interrupt = true,
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             usable = function () return pet.exists end,
             handler = function ()
@@ -1029,6 +1031,20 @@ if UnitClassBase( "player" ) == "WARLOCK" then
             copy = 119914
         },
 
+        pet_attack = {
+        	id = 5019,
+        	known = function () return true end,
+        	gcd = "off",
+        	cast = 0,
+        	cooldown = 0,
+            spend = 0.02,
+            spendType = "mana",
+        	startsCombat = true,
+        	usable = function () return (not UnitIsUnit("target", "pettarget")) and pet.exists end,
+        	readyTime = function () return 0 end,
+        	castableWhileCasting = true,
+        	cast_while_moving = 1,
+        },
 
         banish = {
             id = 710,
