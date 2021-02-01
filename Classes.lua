@@ -1949,6 +1949,25 @@ all:RegisterAbility( "gift_of_the_naaru", {
     end,
 } )
 
+all:RegisterAbilities( {
+    potion_of_spectral_agility = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171270,
+        copy = "spectral_agility",        
+    },
+    potion_of_phantom_fire = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171349,
+        copy = "phantom_fire",
+    },
+})
+
 
 all:RegisterAbilities( {
     global_cooldown = {
