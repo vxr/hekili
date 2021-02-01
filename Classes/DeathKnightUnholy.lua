@@ -1217,7 +1217,7 @@ if UnitClassBase( "player" ) == "DEATHKNIGHT" then
             id = 47528,
             cast = 0,
             cooldown = 15,
-            gcd = "spell",
+            gcd = "off",
 
             spend = 0,
             spendType = "runic_power",
@@ -1228,7 +1228,9 @@ if UnitClassBase( "player" ) == "DEATHKNIGHT" then
             toggle = "interrupts",
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return max(state.timeToInterrupt() - 0.25, 0)
+            end,
 
             handler = function ()
                 if conduit.spirit_drain.enabled then gain( conduit.spirit_drain.mod * 0.1, "runic_power" ) end
