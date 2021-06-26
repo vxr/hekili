@@ -1508,6 +1508,10 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             startsCombat = true,
             texture = 135728,
 
+            num_targets = function ()
+                return min( 5, max( buff.active_uas.stack, active_dot.agony, active_dot.corruption, active_dot.siphon_life ) )
+            end,
+
             usable = function () return buff.active_uas.stack > 0 or active_dot.agony > 0 or active_dot.corruption > 0 or active_dot.siphon_life > 0 end,
             handler = function ()
                 local targets = min( 5, max( buff.active_uas.stack, active_dot.agony, active_dot.corruption, active_dot.siphon_life ) )
