@@ -1966,6 +1966,14 @@ all:RegisterAbilities( {
         item = 171349,
         copy = "phantom_fire",
     },
+    potion_of_spectral_intellect = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171273,
+        copy = "spectral_intellect",
+    },
 })
 
 

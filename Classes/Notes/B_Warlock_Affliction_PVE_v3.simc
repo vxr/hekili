@@ -11,11 +11,12 @@
 ## - Condense some Darkglare Prep calls to reduce computation time.
 ## - Set some call_action_list entries to strict to avoid checking lists that won't be reached.
 
-actions.precombat=fel_domination,if=time>0&!pet.alive&!buff.grimoire_of_sacrifice.up
+actions.precombat+=/fel_domination,if=time>0&!pet.alive&!buff.grimoire_of_sacrifice.up
 # actions.precombat+=/summon_pet
 # actions.precombat+=/summon_felhunter,if=action.summon_felhunter.lastCast+(action.summon_felhunter.cast*1.3)<query_time
 actions.precombat+=/summon_imp,if=action.summon_imp.lastCast+(action.summon_imp.cast*1.3)<query_time
 actions.precombat+=/grimoire_of_sacrifice,if=talent.grimoire_of_sacrifice.enabled
+actions.precombat+=/demon_armor
 # actions.precombat+=/variable,name=dots_ready,value=active_dot.corruption>0&active_dot.agony>0&active_dot.unstable_affliction>0&(!talent.siphon_life.enabled|active_dot.siphon_life>0)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled)
 # actions.precombat+=/use_item,name=azsharas_font_of_power
 # actions.precombat+=/seed_of_corruption,if=spell_targets.seed_of_corruption_aoe>=3&!equipped.169314
@@ -27,19 +28,20 @@ actions.precombat+=/shadow_bolt,if=!talent.haunt.enabled&spell_targets.seed_of_c
 actions=run_action_list,name=dead_end,if=!solo&in_combat_lockdown&!target.affecting_combat&!target.on_partyraid&!target.is_dummy
 actions+=/spell_lock,use_while_casting=1
 actions+=/devour_magic
-actions+=/variable,name=should_use_darkglare,value=(target.time_to_die>=15&(ttds_after_60>=1|ttds_after_30>=3|ttds_after_25>=4|ttds_after_20>=5))|target.is_boss
+actions+=/variable,name=should_use_darkglare,value=(target.time_to_die>=15&(ttds_after_60>=1|ttds_after_30>=3|ttds_after_25>=4|ttds_after_20>=5))|target.is_boss|target.is_dummy|target.is_player
 actions+=/variable,name=darkglare_up,value=action.summon_darkglare.lastCast>(query_time-18)
 actions+=/drain_soul,if=target.time_to_die<=2&soul_shard<5
 actions+=/use_item,name=inscrutable_quantum_device,if=variable.darkglare_up|(boss&fight_remains<cooldown.summon_darkglare.remains+30)
-actions+=/potion,name=potion_of_phantom_fire,if=toggle.cooldowns&(variable.darkglare_up|cooldown.summon_darkglare.remains>60)&active_enemies<=1
-actions+=/potion,name=potion_of_spectral_intellect,if=toggle.cooldowns&(variable.darkglare_up|cooldown.summon_darkglare.remains>60)&active_enemies>1
+actions+=/potion_of_phantom_fire,if=toggle.cooldowns&(variable.darkglare_up|(boss&fight_remains<cooldown.summon_darkglare.remains+30))&active_enemies<=1
+actions+=/potion_of_spectral_intellect,if=toggle.cooldowns&(variable.darkglare_up|(boss&fight_remains<cooldown.summon_darkglare.remains+30))&active_enemies>1
+actions+=/soulshatter,if=action.soulshatter.num_targets>=3&(soul_shard+action.soulshatter.num_targets)<=5
 actions+=/call_action_list,name=aoe,strict=1,if=active_enemies>3
 # actions+=/phantom_singularity,if=time>30
-actions+=/phantom_singularity,if=ttds_after_8>=5|ttds_after_10>=4|ttds_after_12>=3|target.is_boss
+actions+=/phantom_singularity,if=ttds_after_8>=5|ttds_after_10>=4|ttds_after_12>=3|target.is_boss|target.is_dummy|target.is_player
 actions+=/call_action_list,name=darkglare_check,if=(covenant.venthyr&dot.impending_catastrophe_dot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&dot.soul_rot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&dot.phantom_singularity.ticking&dot.phantom_singularity.remains<2)
 actions+=/agony,if=dot.agony.remains<4&target.time_to_die>9
 actions+=/agony,cycle_targets=1,if=(active_enemies>1)&(dot.agony.remains<4)
-actions+=/haunt,if=target.time_to_die>6|target.is_boss
+actions+=/haunt,if=target.time_to_die>6|target.is_boss|target.is_player
 actions+=/call_action_list,name=darkglare_check,if=(active_enemies>2&covenant.venthyr&(cooldown.impending_catastrophe.ready|dot.impending_catastrophe_dot.ticking)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))|(active_enemies>2&(covenant.necrolord|covenant.kyrian|covenant.none)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))|(active_enemies>2&covenant.night_fae&(cooldown.soul_rot.ready|dot.soul_rot.ticking)&(dot.phantom_singularity.ticking|!talent.phantom_singularity.enabled))
 actions+=/seed_of_corruption,if=active_enemies>2&target.time_to_die>6&ttds_after_8>2&talent.sow_the_seeds.enabled&!dot.seed_of_corruption.ticking&!in_flight
 actions+=/seed_of_corruption,if=active_enemies>2&target.time_to_die>6&ttds_after_8>2&talent.siphon_life.enabled&!dot.seed_of_corruption.ticking&!in_flight&dot.corruption.remains<4
@@ -50,12 +52,13 @@ actions+=/siphon_life,cycle_targets=1,if=(active_enemies>1)&(dot.siphon_life.rem
 actions+=/call_action_list,name=covenant,if=!covenant.necrolord
 actions+=/corruption,if=active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled)&dot.corruption.remains<2&target.time_to_die>7
 actions+=/corruption,cycle_targets=1,if=(active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled))&(dot.corruption.remains<2)
-actions+=/phantom_singularity,if=ttds_after_8>=5|ttds_after_10>=4|ttds_after_12>=3|target.is_boss
+actions+=/phantom_singularity,if=ttds_after_8>=5|ttds_after_10>=4|ttds_after_12>=3|target.is_boss|target.is_dummy|target.is_player
 actions+=/malefic_rapture,if=soul_shard>4
 actions+=/call_action_list,name=darkglare_check,if=(covenant.venthyr&(cooldown.impending_catastrophe.ready|dot.impending_catastrophe_dot.ticking)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&(cooldown.soul_rot.ready|dot.soul_rot.ticking)&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))
 actions+=/dark_soul,if=cooldown.summon_darkglare.remains>fight_remains|!variable.should_use_darkglare
 # actions+=/call_action_list,name=item
 actions+=/call_action_list,name=se,if=level>57&(debuff.shadow_embrace.stack<(2-action.shadow_bolt.in_flight)|debuff.shadow_embrace.remains<3)
+actions+=/malefic_rapture,if=(target.is_boss|target.is_player)&target.time_to_die<action.malefic_rapture.cast*(soul_shard+1)
 actions+=/malefic_rapture,if=active_dot.vile_taint>0
 actions+=/malefic_rapture,if=active_dot.impending_catastrophe_dot>0
 actions+=/malefic_rapture,if=active_dot.soul_rot>0
@@ -70,18 +73,19 @@ actions+=/unstable_affliction,if=refreshable
 actions+=/siphon_life,if=refreshable&target.time_to_die>7
 actions+=/siphon_life,cycle_targets=1,if=(active_enemies>1)&(refreshable)
 actions+=/corruption,cycle_targets=1,if=(active_enemies<4-(talent.sow_the_seeds.enabled|talent.siphon_life.enabled))&(refreshable)
+actions+=/malefic_rapture,if=debuff.shadow_embrace.stack>=3&debuff.shadow_embrace.remains>=6&(cooldown.phantom_singularity.remains>=15|!talent.phantom_singularity.enabled)&(cooldown.soul_rot.remains>=15|!covenant.night_fae)
 actions+=/drain_soul
 actions+=/shadow_bolt
 
-actions.aoe=phantom_singularity,if=ttds_after_8>=5|ttds_after_10>=4|ttds_after_12>=3|target.is_boss
-actions.aoe+=/haunt,if=target.time_to_die>6|target.is_boss
+actions.aoe=phantom_singularity,if=ttds_after_8>=5|ttds_after_10>=4|ttds_after_12>=3|target.is_boss|target.is_dummy|target.is_player
+actions.aoe+=/haunt,if=target.time_to_die>6|target.is_boss|target.is_player
 actions.aoe+=/call_action_list,name=darkglare_check,if=(covenant.venthyr&dot.impending_catastrophe_dot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|(covenant.night_fae&dot.soul_rot.ticking&cooldown.summon_darkglare.remains<2&(dot.phantom_singularity.remains>2|!talent.phantom_singularity.enabled))|((covenant.necrolord|covenant.kyrian|covenant.none)&dot.phantom_singularity.ticking&dot.phantom_singularity.remains<2)
 actions.aoe+=/seed_of_corruption,if=talent.sow_the_seeds.enabled&can_seed
 actions.aoe+=/seed_of_corruption,if=!talent.sow_the_seeds.enabled&!dot.seed_of_corruption.ticking&!in_flight&dot.corruption.refreshable
 actions.aoe+=/agony,if=dot.agony.remains<4&target.time_to_die>9
 actions.aoe+=/agony,cycle_targets=1,if=active_dot.agony<4&refreshable
 actions.aoe+=/agony,cycle_targets=1,if=active_dot.agony>=4&refreshable&dot.agony.ticking
-actions.aoe+=/unstable_affliction,if=active_dot.unstable_affliction=0|ticking&refreshable
+actions.aoe+=/unstable_affliction,if=active_dot.unstable_affliction=0|(dot.unstable_affliction.down&pvptalent.rampant_afflictions.enabled&active_dot.unstable_affliction<3)|ticking&refreshable
 actions.aoe+=/unstable_affliction,cycle_targets=1,if=!ticking&pvptalent.rampant_afflictions.enabled&active_dot.unstable_affliction<3
 actions.aoe+=/vile_taint,if=soul_shard>1&ttds_after_5>=1&safe_mouseover
 actions.aoe+=/call_action_list,name=covenant,strict=1,if=!covenant.necrolord
@@ -101,7 +105,7 @@ actions.aoe+=/shadow_bolt
 actions.covenant=impending_catastrophe,if=cooldown.summon_darkglare.remains<10|cooldown.summon_darkglare.remains>50
 actions.covenant+=/decimating_bolt,if=cooldown.summon_darkglare.remains>5&(debuff.haunt.remains>4|!talent.haunt.enabled)
 # actions.covenant+=/soul_rot,if=cooldown.summon_darkglare.remains<5|cooldown.summon_darkglare.remains>50|cooldown.summon_darkglare.remains>25&conduit.corrupting_leer.enabled
-actions.covenant+=/soul_rot,if=ttds_after_8>=2|ttds_after_6>=3|target.is_boss
+actions.covenant+=/soul_rot,if=ttds_after_8>=2|ttds_after_6>=3|target.is_boss|target.is_dummy|target.is_player
 actions.covenant+=/scouring_tithe
 
 
@@ -117,7 +121,7 @@ actions.darkglare_prep+=/summon_darkglare
 
 # actions.item=use_items
 
-actions.se=haunt,if=target.time_to_die>6|target.is_boss
+actions.se=haunt,if=target.time_to_die>6|target.is_boss|target.is_dummy|target.is_player
 actions.se+=/drain_soul,interrupt_global=1,interrupt_if=debuff.shadow_embrace.stack>=3|target.unit!=action.drain_soul.lastUnit
 actions.se+=/shadow_bolt
 
