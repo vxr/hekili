@@ -993,7 +993,7 @@ if UnitClassBase( 'player' ) == 'ROGUE' then
             id = 31224,
             cast = 0,
             cooldown = 120,
-            gcd = "spell",
+            gcd = "off",
 
             toggle = "defensives",
 
@@ -1155,7 +1155,7 @@ if UnitClassBase( 'player' ) == 'ROGUE' then
             id = 5277,
             cast = 0,
             cooldown = 120,
-            gcd = "spell",
+            gcd = "off",
 
             startsCombat = false,
             texture = 136205,
@@ -1295,7 +1295,10 @@ if UnitClassBase( 'player' ) == 'ROGUE' then
             interrupt = true,
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
+
 
             handler = function ()
                 interrupt()

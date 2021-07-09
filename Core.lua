@@ -711,7 +711,6 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
 
                 elseif GetUnitSpeed("player") > 0 and ability.cast > 0 and not ability.cast_while_moving then
                     -- bussy cant cast while moving
-                
                 else
                     local entryReplaced = false
                     
@@ -1920,6 +1919,8 @@ function Hekili:ProcessHooks( dispName, packName )
                     if out_of_range then
                         slot_flags = "c"
                     end
+                elseif state.time > 3 and not state.solo and not state.target.affecting_combat then
+                    slot_flags = "c"
                 end
 	            if dispName == "Primary" then
                 	state.bussy.st = string.format("%s:%s:%s", this_slot_time, slot.keybind, slot_flags)

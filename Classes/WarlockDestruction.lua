@@ -530,6 +530,21 @@ if UnitClassBase( 'player' ) == 'WARLOCK' then
             end,
         },
 
+        pet_attack = {
+            id = 5019,
+            known = function () return true end,
+            gcd = "off",
+            cast = 0,
+            cooldown = 0,
+            spend = 0.02,
+            spendType = "mana",
+            startsCombat = true,
+            usable = function () return (not UnitIsUnit("target", "pettarget")) and pet.exists end,
+            readyTime = function () return 0 end,
+            castableWhileCasting = true,
+            cast_while_moving = 1,
+        },
+
 
         burning_rush = {
             id = 111400,

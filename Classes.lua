@@ -36,7 +36,6 @@ local specTemplate = {
     cycle = false,
     cycle_min = 6,
     gcdSync = true,
-    enhancedRecheck = false,
 
     buffPadding = 0,
     debuffPadding = 0,
@@ -498,10 +497,9 @@ local HekiliSpecMixin = {
                     if a.item and a.item ~= 158075 then
                         a.itemSpellName, a.itemSpellID = GetItemSpell( a.item )
 
-                        if a.itemSpellName == a.name then
+                        if a.itemSpellName == a.name then                    
                             a.itemSpellKey = a.key .. "_" .. a.itemSpellID
                             self.abilities[ a.itemSpellKey ] = a
-                            class.abilities[ a.itemSpellKey ] = a
 
                         elseif a.itemSpellName then
                             local itemAura = self.auras[ a.itemSpellName ]
@@ -509,7 +507,6 @@ local HekiliSpecMixin = {
                             if itemAura then
                                 a.itemSpellKey = itemAura.key .. "_" .. a.itemSpellID
                                 self.abilities[ a.itemSpellKey ] = a
-                                class.abilities[ a.itemSpellKey ] = a
                                 
                             else
                                 if self.pendingItemSpells[ a.itemSpellName ] then
@@ -774,7 +771,7 @@ local HekiliSpecMixin = {
 
 function Hekili:RestoreDefaults()
     local p = self.DB.profile
-    local changed = {}
+    local changed = false
 
     for k, v in pairs( class.packs ) do
         local existing = rawget( p.packs, k )
@@ -787,32 +784,13 @@ function Hekili:RestoreDefaults()
                 data.payload.version = v.version
                 data.payload.date = v.version
                 data.payload.builtIn = true
-                insert( changed, k )
+                changed = true
             end
 
         end
     end
 
-    if #changed > 0 then
-        self:LoadScripts()
-        self:RefreshOptions()
-
-        if #changed == 1 then
-            self:Print( "The |cFFFFD100" .. changed[1] .. "|r priority was updated." )
-        elseif #changed == 2 then
-            self:Print( "The |cFFFFD100" .. changed[1] .. "|r and |cFFFFD100" .. changed[2] .. "|r priorities were updated." )
-        else
-            local report = "|cFFFFD100" .. changed[1] .. "|r"
-
-            for i = 2, #changed - 1 do
-                report = report .. ", |cFFFFD100" .. changed[i] .. "|r"
-            end
-
-            report = "The " .. report .. ", and |cFFFFD100" .. changed[ #changed ] .. "|r priorities were updated."
-
-            Hekili:Print( report )
-        end
-    end
+    if changed then self:LoadScripts(); self:RefreshOptions() end
 end
 
 
@@ -1980,6 +1958,14 @@ all:RegisterAbilities( {
         item = 171270,
         copy = "spectral_agility",        
     },
+    potion_of_spectral_strength = {
+        cast = 0,
+        cooldown = 300,
+        gcd = "off",
+        bagItem = true,
+        item = 171275,
+        copy = "spectral_strength",        
+    },
     potion_of_phantom_fire = {
         cast = 0,
         cooldown = 300,
@@ -2155,12 +2141,7 @@ all:RegisterAbilities( {
         cooldown = 120,
         gcd = "off",
 
-        usable = function ()
-            if not boss or solo then return false, "requires boss fight or group (to avoid resetting)" end
-            if moving then return false, "can't shadowmeld while moving" end
-            return true
-        end,
-
+        usable = function () return boss and group end,
         handler = function ()
             applyBuff( "shadowmeld" )
         end,
@@ -2176,32 +2157,6 @@ all:RegisterAbilities( {
         -- usable = function () return race.lightforged_draenei end,
 
         toggle = 'cooldowns',
-    },
-
-
-    stoneform = {
-        id = 20594,
-        cast = 0,
-        cooldown = 120,
-        gcd = "off",
-
-        handler = function ()
-            removeBuff( "dispellable_poison" )
-            removeBuff( "dispellable_disease" )
-            removeBuff( "dispellable_curse" )
-            removeBuff( "dispellable_magic" )
-            removeBuff( "dispellable_bleed" )
-
-            applyBuff( "stoneform" )
-        end,
-
-        auras = {
-            stoneform = {
-                id = 65116,
-                duration = 8,
-                max_stack = 1
-            }
-        }
     },
 
 
@@ -2352,7 +2307,6 @@ all:RegisterAbilities( {
         end,
 
         usable = function () return args.buff_name ~= nil, "no buff name detected" end,
-        timeToReady = function () return gcd.remains end,
         handler = function ()
             removeBuff( args.buff_name )
         end,
@@ -4185,7 +4139,6 @@ do
     for _, v in ipairs( pvp_medallions ) do
         insert( pvp_medallions_copy, v[1] )
         all:RegisterGear( v[1], v[2] )
-        all:RegisterGear( "gladiators_medallion", v[2] )
     end
 
     all:RegisterAbility( "gladiators_medallion", {
@@ -4239,8 +4192,8 @@ do
 
     for _, v in ipairs( pvp_badges ) do
         insert( pvp_badges_copy, v[1] )
+
         all:RegisterGear( v[1], v[2] )
-        all:RegisterGear( "gladiators_badge", v[2] )
     end
 
     all:RegisterAbility( "gladiators_badge", {
@@ -4309,10 +4262,8 @@ do
 
     local pvp_emblems_copy = {}
 
-    for k, v in pairs( pvp_emblems ) do
+    for k in pairs( pvp_emblems ) do
         insert( pvp_emblems_copy, k )
-        all:RegisterGear( k, v )
-        all:RegisterGear( "gladiators_emblem", v )
     end
 
     

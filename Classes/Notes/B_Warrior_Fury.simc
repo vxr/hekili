@@ -1,0 +1,80 @@
+# Fury Warrior
+# December 14, 2020
+
+# Changes:
+# - Added Pummel.
+# - Disabled movement / Heroic Leap call (not needed for in-game context).
+# - Moved Bladestorm and Dragon Roar above Bloodthirst to improve frequency of recommendations (sims roughly equal).
+# - Added Battle Shout to precombat APL.
+# - Added Victory Rush above single-target Whirlwind.
+# - Added Use Items.
+# - Tweak for Whirlwind before level 37.
+# - Removed Essences.
+# - Don't use Siegebreaker if it's already up (Deathmaker).
+
+  # Executed before combat begins. Accepts non-harmful actions only.
+actions.precombat+=/battle_shout
+actions.precombat+=/recklessness,if=action.bloodthirst.in_range&target.exists
+
+actions.pvp+=/intimidating_shout,if=debuff.casting.remains<cooldown.pummel.remains+0.2&target.within8
+actions.pvp+=/hamstring,if=target.is_player&debuff.hamstring.remains<=3&(query_time-action.hamstring.lastCast>5)
+actions.pvp+=/shattering_throw,if=target.is_player&(target.is_immune|target.is_immunespell)
+actions.pvp+=/piercing_howl,if=active_enemies>=2&target.within12
+
+
+  # Executed every time the actor is available.
+actions+=/variable,name=significant_fight,value=false
+actions+=/variable,name=significant_fight,value=true,if=solo&time>=4&target.time_to_die>=25&target.health_pct<=90
+actions+=/variable,name=significant_fight,value=true,if=in_pvp&target.is_player&target.health_pct>=60
+actions+=/variable,name=significant_fight,value=true,if=(raid|group)&target.exists&(boss|target.is_boss)
+actions+=/berserker_rage,if=is_cced
+actions+=/enraged_regeneration,if=incoming_damage_3s>0.25*health.max
+actions+=/pummel
+actions+=/spell_reflection,if=target.on_me&debuff.casting.remains>0&debuff.casting.remains<=3
+actions+=/storm_bolt,if=debuff.casting.remains<=0.3&!action.pummel.in_range
+actions+=/charge,if=target.affecting_combat|solo|in_pvp
+actions+=/heroic_throw,if=(solo|in_pvp)&action.heroic_throw.in_range
+actions+=/ignore_pain,if=incoming_damage_3s>0.25*health.max&buff.ignore_pain.down
+actions+=/victory_rush,if=health.pct<=80
+actions+=/impending_victory,if=health.pct<=70
+actions+=/call_action_list,name=pvp,if=in_pvp
+  # This is mostly to prevent cooldowns from being accidentally used during movement.
+  # actions+=/call_action_list,name=movement,if=movement.distance>5
+  # actions+=/heroic_leap,if=(raid_event.movement.distance>25&raid_event.movement.in>45)
+actions+=/potion_of_phantom_fire,if=variable.significant_fight
+actions+=/rampage,if=cooldown.recklessness.remains<3&talent.reckless_abandon.enabled
+actions+=/conquerors_banner,if=buff.recklessness.down&debuff.siegebreaker.down|fight_remains<50
+actions+=/recklessness,if=action.bloodthirst.in_range&target.exists&(gcd.remains=0&((buff.bloodlust.up|talent.anger_management.enabled)|fight_remains>100|(talent.massacre.enabled&target.health.pct<35)|target.health.pct<20)&(spell_targets.whirlwind=1|buff.meat_cleaver.up))
+actions+=/whirlwind,if=level>36&(spell_targets.whirlwind>1&!buff.meat_cleaver.up)
+actions+=/use_items,if=variable.significant_fight
+actions+=/blood_fury
+actions+=/berserking,if=buff.recklessness.up
+actions+=/lights_judgment,if=buff.recklessness.down&debuff.siegebreaker.down
+actions+=/fireblood
+actions+=/ancestral_call
+actions+=/bag_of_tricks,if=buff.recklessness.down&debuff.siegebreaker.down&buff.enrage.up
+actions+=/run_action_list,name=single_target
+
+  # actions.movement=heroic_leap
+
+actions.single_target+=/raging_blow,if=runeforge.will_of_the_berserker.equipped&buff.will_of_the_berserker.remains<gcd
+actions.single_target+=/crushing_blow,if=runeforge.will_of_the_berserker.equipped&buff.will_of_the_berserker.remains<gcd
+actions.single_target+=/siegebreaker,if=debuff.siegebreaker.down&spell_targets.whirlwind>1
+actions.single_target+=/rampage,if=(buff.recklessness.up|buff.memory_of_lucid_dreams.up)|(buff.enrage.remains<gcd|rage>90)
+actions.single_target+=/condemn
+actions.single_target+=/ancient_aftershock,if=buff.enrage.up&spell_targets.whirlwind>1
+actions.single_target+=/spear_of_bastion,if=buff.enrage.up&spell_targets.whirlwind>1
+actions.single_target+=/execute
+actions.single_target+=/bladestorm,if=buff.enrage.up&spell_targets.whirlwind>1
+actions.single_target+=/dragon_roar,if=buff.enrage.up&spell_targets.whirlwind>1
+actions.single_target+=/bloodthirst,if=buff.enrage.down|conduit.vicious_contempt.rank>5&target.health.pct<35&!talent.cruelty.enabled
+actions.single_target+=/bloodbath,if=buff.enrage.down|conduit.vicious_contempt.rank>5&target.health.pct<35&!talent.cruelty.enabled
+actions.single_target+=/onslaught
+actions.single_target+=/raging_blow,if=charges=2
+actions.single_target+=/crushing_blow,if=charges=2
+actions.single_target+=/bloodthirst
+actions.single_target+=/bloodbath
+actions.single_target+=/raging_blow
+actions.single_target+=/crushing_blow
+actions.single_target+=/victory_rush
+actions.single_target+=/whirlwind

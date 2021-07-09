@@ -531,7 +531,7 @@ if UnitClassBase( 'player' ) == 'WARRIOR' then
             id = 18499,
             cast = 0,
             cooldown = 60,
-            gcd = "spell",
+            gcd = "off",
 
             toggle = "cooldowns",
 
@@ -698,6 +698,23 @@ if UnitClassBase( 'player' ) == 'WARRIOR' then
             copy = { 280735, 5308 }
         },
 
+        hamstring = {
+            id = 1715,
+            cast = 0,
+            cooldown = 0,
+            gcd = "spell",
+
+            spend = 10,
+            spendType = "rage",
+
+            startsCombat = true,
+            texture = 132316,
+
+            handler = function ()
+                applyDebuff( "target", "hamstring" )
+            end,
+        },
+
 
         heroic_leap = {
             id = 6544,
@@ -715,15 +732,26 @@ if UnitClassBase( 'player' ) == 'WARRIOR' then
                 setDistance( 15 ) -- probably heroic_leap + charge combo.
                 if talent.bounding_stride.enabled then applyBuff( "bounding_stride" ) end                
             end,
+        },
 
-            copy = 52174
+        heroic_throw = {
+            id = 57755,
+            cast = 0,
+            cooldown = 0,
+            gcd = "spell",
+
+            startsCombat = true,
+            texture = 132453,
+
+            handler = function ()
+            end,
         },
 
         ignore_pain = {
             id = 190456,
             cast = 0,
             cooldown = 12,
-            gcd = "spell",
+            gcd = "off",
 
             toggle = "defensives",
 
@@ -818,7 +846,7 @@ if UnitClassBase( 'player' ) == 'WARRIOR' then
             id = 6552,
             cast = 0,
             cooldown = 15,
-            gcd = "spell",
+            gcd = "off",
 
             startsCombat = true,
             texture = 132938,
@@ -826,7 +854,9 @@ if UnitClassBase( 'player' ) == 'WARRIOR' then
             toggle = "interrupts",
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             handler = function ()
                 interrupt()
@@ -992,7 +1022,9 @@ if UnitClassBase( 'player' ) == 'WARRIOR' then
             texture = 132361,
 
             debuff = "casting",
-            readyTime = state.timeToInterrupt,
+            readyTime = function ()
+                return state.timeToInterrupt() - 0.25
+            end,
 
             handler = function ()
                 applyBuff( "spell_reflection" )
