@@ -367,9 +367,11 @@ local mt_trinket = {
             return rawget( t, "__ability" ) or "null_cooldown"
         elseif k == "usable" then
             return rawget( t, "__usable" ) or false
-        elseif k == "has_use_buff" then
+        elseif k == "has_use_buff" or k == "use_buff" then
             return isEnabled and t.__has_use_buff or false
-        elseif k == "proc" then
+        elseif k == "use_buff_duration" or k == "buff_duration" then
+            return isEnabled and t.__has_use_buff and t.__use_buff.duration or 0
+        elseif k == "has_proc" or k == "proc" then
             return isEnabled and t.__proc or false
         end
 
@@ -385,9 +387,9 @@ local mt_trinket = {
             if isEnabled and t.usable and t.ability then
                 return t.cooldown.ready
             end
-            return false
+            return true
         elseif k == "cooldown" then
-            if t.usable and t.ability then
+            if t.usable and t.ability and state.cooldown[ t.ability ] then
                 return state.cooldown[ t.ability ]            
             end
             return state.cooldown.null_cooldown
@@ -3106,12 +3108,19 @@ ns.metatables.mt_default_cooldown = mt_default_cooldown
 -- Needs review.
 local mt_cooldowns = {
     -- The action doesn't exist in our table so check the real game state, -- and copy it so we don't have to use the API next time.
-    __index = function(t, k)
+    __index = function( t, k )
         local entry = class.abilities[ k ]
 
         if not entry then
-            Error( "UNK: cooldown." .. k )
-            return
+            -- Check if this is one of SimC's lovely itemname_spellid type tokens.
+            local shortkey = k:match( "^([a-z0-9_])_%d+$" )
+
+            if shortkey and class.abilities[ shortkey ] then
+                class.abilities[ k ] = class.abilities[ shortkey ]
+                entry = class.abilities[ k ]
+            else
+                return t.null_cooldown
+            end
         end
 
         if k ~= entry.key then
@@ -3119,11 +3128,8 @@ local mt_cooldowns = {
             return t[ k ]
         end
 
-        local ability = entry.id
-
         t[ k ] = { key = k }
         return t[ k ]
-
     end,
     __newindex = function(t, k, v)
         rawset( t, k, setmetatable( v, mt_default_cooldown ) )
@@ -3474,6 +3480,8 @@ local mt_alias_buff = {
         local aura = class.auras[ t.key ]
         local type = aura.aliasType or "buff"
 
+        if aura.meta and aura.meta[ k ] then return aura.meta[ k ]() end
+
         if k == "count" or k == "stack" or k == "stacks" then
             local n = 0
 
@@ -3595,9 +3603,6 @@ local mt_default_buff = {
             return t.remains == 0
 
         elseif k == "remains" then
-            if aura and aura.strictTiming then
-                return max( 0, t.expires - state.query_time )
-            end
             return max( 0, t.expires - state.query_time )
 
         elseif k == "refreshable" then
@@ -4137,6 +4142,8 @@ do
             end
 
             if not db[ var ] then
+                if debug then Hekili:Debug( "No such variable '%s'.", var ) end
+                Hekili:Error( "Variable '%s' referenced in %s but is undefined.", var, state.scriptID )
                 return 0
             end
 
@@ -4339,6 +4346,8 @@ local mt_alias_debuff = {
         local aura = class.auras[ t.key ]
         local type = aura.aliasType or "debuff"
 
+        if aura.meta and aura.meta[ k ] then return aura.meta[ k ]() end
+
         if k == "count" or k == "stack" or k == "stacks" then
             local n = 0
 
@@ -4481,9 +4490,6 @@ local mt_default_debuff = {
             return not t.up
 
         elseif k == "remains" then
-            if aura and aura.strictTiming then
-                return max( 0, t.expires - state.query_time )
-            end
             return max( 0, t.expires - state.query_time )
 
         elseif k == "refreshable" then

@@ -459,7 +459,7 @@ function Hekili:CheckChannel( ability, prio )
     channel = a.key
     local aura = class.auras[ a.aura or channel ]
 
-    if a.break_any then
+    if a.break_any and channel ~= ability then
         if self.ActiveDebug then self:Debug( "CC: %s.break_any is true; break it.", channel ) end
         return true
     end
@@ -1511,7 +1511,7 @@ function Hekili:ProcessHooks( dispName, packName )
 
         state.delay = 0
         state.delayMin = 0
-        state.delayMax = 0
+        state.delayMax = 60
 
         local hadProj = false
 
@@ -1685,7 +1685,12 @@ function Hekili:ProcessHooks( dispName, packName )
                             slot.action = nil
                             slot.actionName = nil
                             slot.actionID = nil
-                            action, wait = nil, 15
+
+                            state.delay = 0
+                            state.delayMin = 0
+                            state.delayMax = 60
+
+                            action, wait = nil, 15                            
 
                             action, wait, depth = self:GetNextPrediction( dispName, packName, slot )
                         end
@@ -1697,6 +1702,11 @@ function Hekili:ProcessHooks( dispName, packName )
                             slot.action = nil
                             slot.actionName = nil
                             slot.actionID = nil
+
+                            state.delay = 0
+                            state.delayMin = 0
+                            state.delayMax = 60
+        
                             action, wait = nil, 15        
                             break
                         end
@@ -1765,6 +1775,11 @@ function Hekili:ProcessHooks( dispName, packName )
                     slot.action = nil
                     slot.actionName = nil
                     slot.actionID = nil
+
+                    state.delay = 0
+                    state.delayMin = 0
+                    state.delayMax = 60
+
                     action, wait = nil, 15
 
                     action, wait, depth = self:GetNextPrediction( dispName, packName, slot )
@@ -1778,6 +1793,11 @@ function Hekili:ProcessHooks( dispName, packName )
                     slot.action = nil
                     slot.actionName = nil
                     slot.actionID = nil
+
+                    state.delay = 0
+                    state.delayMin = 0
+                    state.delayMax = 60
+
                     action, wait = nil, 15
 
                     break

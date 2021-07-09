@@ -26,6 +26,8 @@ local mt_resource = ns.metatables.mt_resource
 local GetSpellDescription, GetSpellTexture = _G.GetSpellDescription, _G.GetSpellTexture
 local GetSpecialization, GetSpecializationInfo = _G.GetSpecialization, _G.GetSpecializationInfo
 
+local Casting = _G.SPELL_CASTING or "Casting"
+
 
 local specTemplate = {
     enabled = false,
@@ -497,11 +499,13 @@ local HekiliSpecMixin = {
                     if a.item and a.item ~= 158075 then
                         a.itemSpellName, a.itemSpellID = GetItemSpell( a.item )
 
-                        if a.itemSpellName == a.name then                    
+                        if a.itemSpellID then
                             a.itemSpellKey = a.key .. "_" .. a.itemSpellID
                             self.abilities[ a.itemSpellKey ] = a
+                            class.abilities[ a.itemSpellKey ] = a
+                        end
 
-                        elseif a.itemSpellName then
+                        if a.itemSpellName then
                             local itemAura = self.auras[ a.itemSpellName ]
 
                             if itemAura then
@@ -1085,6 +1089,12 @@ all:RegisterAuras( {
         end,
     },
 
+    power_infusion = {
+        id = 10060,
+        duration = 20,
+        max_stack = 1
+    },
+
     old_war = {
         id = 188028,
         duration = 25,
@@ -1190,8 +1200,7 @@ all:RegisterAuras( {
     },
 
     casting = {
-        name = "Casting",
-        strictTiming = true,
+        name = Casting,
         generate = function( t, auraType )
             local unit = auraType == "debuff" and "target" or "player"
 
@@ -1235,7 +1244,7 @@ all:RegisterAuras( {
                 end
             end
 
-            t.name = "Casting"
+            t.name = Casting
             t.count = 0
             t.expires = 0
             t.applied = 0
@@ -1282,7 +1291,6 @@ all:RegisterAuras( {
             aura.v1 = 0
             aura.caster = 'target'
         end,
-        strictTiming = true,
     }, ]]
 
     movement = {
@@ -4132,6 +4140,8 @@ do
         { "corrupted_gladiators_medallion", 184055 },
         { "sinful_aspirants_medallion", 184052 },
         { "sinful_gladiators_medallion", 181333 },
+        { "unchained_aspirants_medallion", 185309 },
+        { "unchained_gladiators_medallion", 185304 },
     }
 
     local pvp_medallions_copy = {}
@@ -4154,7 +4164,7 @@ do
             end            
             return m
         end,
-        items = { 162897, 161674, 165220, 165055, 167525, 167525, 167377, 172666, 184058, 184055, 184052, 181333 },
+        items = { 162897, 161674, 165220, 165055, 167525, 167525, 167377, 172666, 184058, 184055, 184052, 181333, 185309, 185304 },
         toggle = "defensives",
 
         usable = function () return debuff.loss_of_control.up, "requires loss of control effect" end,
@@ -4186,6 +4196,8 @@ do
         { "corrupted_gladiators_badge", 172669 },
         { "sinful_aspirants_badge_of_ferocity", 175884 },
         { "sinful_gladiators_badge_of_ferocity", 175921 },
+        { "unchained_aspirants_badge_of_ferocity", 185161 },
+        { "unchained_gladiators_badge_of_ferocity", 185197 },
     }
 
     local pvp_badges_copy = {}
@@ -4209,7 +4221,7 @@ do
             end
             return b
         end,
-        items = { 162966, 161902, 165223, 165058, 167528, 167528, 167380, 172849, 172669, 175884, 175921 },
+        items = { 162966, 161902, 165223, 165058, 167528, 167528, 167380, 172849, 172669, 175884, 175921, 185161, 185197 },
             
         toggle = "cooldowns",
 
@@ -4232,7 +4244,8 @@ end
 all:RegisterAura( "gladiators_insignia", {
     id = 277181,
     duration = 20,
-    max_stack = 1
+    max_stack = 1,
+    copy = 345230
 } )    
 
 
@@ -4258,6 +4271,9 @@ do
         corrupted_aspirants_emblem = 172847,
         sinful_aspirants_emblem = 178334,
         sinful_gladiators_emblem = 178447,
+        unchained_aspirants_emblem = 185242,
+        unchained_gladiators_emblem = 185282,
+
     }
 
     local pvp_emblems_copy = {}
@@ -4280,7 +4296,7 @@ do
             end
             return e
         end,
-        items = { 161812, 162898, 161675, 165221, 165056, 167378, 167526, 172667, 172847, 178334, 178447 },
+        items = { 161812, 162898, 161675, 165221, 165056, 167378, 167526, 172667, 172847, 178334, 178447, 185242, 185282 },
         toggle = "cooldowns",
 
         handler = function ()
