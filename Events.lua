@@ -1167,7 +1167,7 @@ do
                 if t and t ~= "" then text = t end
             end )
         end
-    end )
+    end ) ]]
 
     function Hekili:GetMacroCastTarget( spell, castTime, source )
         local ability = class.abilities[ spell ]
