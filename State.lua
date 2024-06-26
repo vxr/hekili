@@ -1175,7 +1175,7 @@ state.interrupt = interrupt
 local function timeToInterrupt()
     -- Why v2?
     -- filter by spell ID for exclusions
-    if state.class.interrupt_exclusions_table[casting.v1] ~= nil then return 3600 end
+    if state.class.interrupt_exclusions_table[debuff.casting.v1] ~= nil then return 3600 end
     if debuff.casting.down or debuff.casting.v2 == 1 then return 3600 end
     if debuff.casting.v3 == 1 then return 0 end
     return max( 0, debuff.casting.remains - 0.5 )
