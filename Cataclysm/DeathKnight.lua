@@ -574,7 +574,7 @@ spec:RegisterAuras( {
     },
     -- Damage increased by $48266s1%.  Healed by $50371s1% of non-periodic damage dealt.
     blood_presence = {
-        id = 48266,
+        id = 48263,
         duration = 3600,
         max_stack = 1,
     },
@@ -682,7 +682,7 @@ spec:RegisterAuras( {
     },
     -- Stamina increased by $61261s1%.  Armor contribution from cloth, leather, mail and plate items increased by $48263s1%.  Damage taken reduced by $48263s3%.
     frost_presence = {
-        id = 48263,
+        id = 48266,
         duration = 3600,
         max_stack = 1,
     },
@@ -698,6 +698,29 @@ spec:RegisterAuras( {
             if name then
                 t.name = name
                 t.count = 1
+                t.expires = expires
+                t.applied = expires - duration
+                t.caster = caster
+                return
+            end
+
+            t.count = 0
+            t.expires = 0
+            t.applied = 0
+            t.caster = "nobody"
+        end,
+    },
+    shadow_infusion = {
+        id = 91342,
+        duration = 30,
+        tick_time = 3,
+        max_stack = 5,
+        generate = function ( t )
+            local name, _, count, _, duration, expires, caster = FindUnitBuffByID( "pet", 91342 )
+
+            if name then
+                t.name = name
+                t.count = count
                 t.expires = expires
                 t.applied = expires - duration
                 t.caster = caster
@@ -785,6 +808,13 @@ spec:RegisterAuras( {
         id = 47476,
         duration = 5,
         max_stack = 1,
+    },
+    -- makes your death coil free
+    sudden_doom = {
+        id = 49018,
+        duration = 10,
+        max_stack = 1,
+        copy = { 49018, 49529, 49530 },
     },
     -- Runic Power is being fed to the Gargoyle.
     summon_gargoyle = {
@@ -976,7 +1006,7 @@ spec:RegisterAbilities( {
 
     -- Strengthens the Death Knight with the presence of blood, increasing damage by 15% and healing the Death Knight by 4% of non-periodic damage dealt. Only one Presence may be active at a time.
     blood_presence = {
-        id = 48266,
+        id = 48263,
         cast = 0,
         cooldown = 1,
         gcd = "off",
@@ -1114,7 +1144,7 @@ spec:RegisterAbilities( {
         gcd = "off",
 
         spend = 0,
-        spendType = "rage",
+        spendType = "runic_power",
 
         startsCombat = true,
         texture = 136088,
@@ -1156,7 +1186,10 @@ spec:RegisterAbilities( {
         cooldown = 0,
         gcd = "spell",
 
-        spend = 40,
+        spend = function ()
+            if buff.sudden_doom.up then return 0 end
+            return 40
+        end,
         spendType = "runic_power",
 
         startsCombat = true,
@@ -1287,7 +1320,7 @@ spec:RegisterAbilities( {
 
     -- The death knight takes on the presence of frost, increasing Stamina by 8%, armor contribution from cloth, leather, mail and plate items by 60%, and reducing damage taken by 8%.  Increases threat generated.  Only one Presence may be active at a time.
     frost_presence = {
-        id = 48263,
+        id = 48266,
         cast = 0,
         cooldown = 1,
         gcd = "off",
@@ -1340,12 +1373,14 @@ spec:RegisterAbilities( {
         gain = 10,
         gainType = "runic_power",
 
-        talent = "ghoul_frenzy",
+--         talent = "ghoul_frenzy",
         startsCombat = false,
-        texture = 132152,
+--         texture = 132152,
 
         usable = function()
-            if pet.ghoul.down then return false, "requires a living ghoul" end
+            if not pet.alive then return false, "requires a living pet" end
+            if buff.shadow_infusion.count < 5 then return false, "requires 5 stacks of shadow infusion" end
+--             if pet.ghoul.down then return false, "requires a living ghoul" end
             return true
         end,
 
@@ -1690,21 +1725,21 @@ spec:RegisterAbilities( {
         startsCombat = false,
         texture = 136119,
 
-        item = function()
-            if glyph.raise_dead.enabled then return end
-            return 37201
-        end,
-        bagItem = function()
-            if glyph.raise_dead.enabled then return end
-            return true
-        end,
+--         item = function()
+--             if glyph.raise_dead.enabled then return end
+--             return 37201
+--         end,
+--         bagItem = function()
+--             if glyph.raise_dead.enabled then return end
+--             return true
+--         end,
 
         toggle = function()
             if talent.master_of_ghouls.enabled then return end
             return "cooldowns"
         end,
 
-        usable = function() return not pet.up, "cannot have a pet" end,
+        usable = function() return not pet.alive, "cannot have a pet" end,
 
         handler = function ()
             summonPet( "ghoul" )
@@ -1770,6 +1805,24 @@ spec:RegisterAbilities( {
         handler = function ()
             -- TODO: talent.desecration effect?
         end,
+    },
+
+
+    festering_strike = {
+        id = 85948,
+        cast = 0,
+        cooldown = 0,
+        gcd = "spell",
+
+        spend = 1,
+        spendType = "blood_runes",
+        spend2 = 1,
+        spend2Type = "frost_runes",
+
+        gain = 15,
+        gainType = "runic_power",
+
+        startsCombat = true,
     },
 
 
