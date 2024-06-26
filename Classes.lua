@@ -468,7 +468,7 @@ local HekiliSpecMixin = {
 
         data.key = potion
         class.potionList[ potion ] = link
-        print("Registering potion: ", potion, data)
+--         print("Registering potion: ", potion, data)
         if data.copy then
             if type( data.copy ) == "table" then
                 for _, key in ipairs( data.copy ) do
