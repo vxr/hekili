@@ -1587,6 +1587,7 @@ function Hekili.Update()
                 numRecs = 1
             end
 
+
             if dispName == "Primary" then
                 state.bussy.ts = (state.now * 100) % 0x10000
                 if UnitAffectingCombat("player") and (not UnitExists("target") or UnitIsFriend("player", "target")) then
@@ -2023,16 +2024,16 @@ function Hekili.Update()
                     if i == 1 then
                         local this_slot_time = slot.time
                         local slot_flags = ""
-                        if this_slot_time == 0 or (class.abilities[action].gcd == "off"  and not class.abilities[action].empowered) then
+                        if this_slot_time == 0 or (class.abilities[action].gcd == "off") then
                             this_slot_time = ""
                         else
                             this_slot_time = string.format("%x", this_slot_time * 100)
                         end
 
-                        if slot.actionName == state.empowerment.spell and slot.wait > 0 then
-                            this_slot_time = string.format("%x", slot.wait * 100)
-                            slot_flags = "h"
-                        end
+--                         if slot.actionName == state.empowerment.spell and slot.wait > 0 then
+--                             this_slot_time = string.format("%x", slot.wait * 100)
+--                             slot_flags = "h"
+--                         end
 
                         if slot.indicator == "cycle" then
                             slot_flags = "c"
