@@ -1186,6 +1186,10 @@ spec:RegisterHook( "reset_precast", function ()
     end ]]
 end )
 
+spec:RegisterStateExpr( "stationary_death_and_decay", function ()
+    return ( settings.stationary_death_and_decay or false )
+end )
+
 spec:RegisterStateExpr( "save_blood_shield", function ()
     return ( settings.save_blood_shield or false )
 end )
@@ -1381,6 +1385,7 @@ spec:RegisterAbilities( {
         id = 206931,
         cast = 3,
         channeled = true,
+        cast_while_moving = true,
         cooldown = 30,
         gcd = "spell",
 
@@ -1559,6 +1564,14 @@ spec:RegisterAbilities( {
         spendType = "runes",
 
         startsCombat = true,
+
+        usable = function ()
+            if (moving or stationary_for < 0.5) and stationary_death_and_decay then
+                -- moving, but we want stationary death and decay
+                return false
+            end
+            return true
+        end,
 
         handler = function ()
             if buff.crimson_scourge.up then
@@ -2295,6 +2308,14 @@ spec:RegisterOptions( {
     package = "Blood",
 } )
 
+
+spec:RegisterSetting( "stationary_death_and_decay", true, {
+    name = strformat( "Stationary %s", Hekili:GetSpellLinkWithTexture( spec.auras.death_and_decay.id ) ),
+    desc = strformat( "If checked, the default priority (or any priority checking |cFFFFD100stationary_death_and_decay|r) will avoid using "
+        .. "death and decay while moving.", Hekili:GetSpellLinkWithTexture( spec.auras.death_and_decay.id ) ),
+    type = "toggle",
+    width = "full"
+} )
 
 spec:RegisterSetting( "save_blood_shield", true, {
     name = strformat( "Save %s", Hekili:GetSpellLinkWithTexture( spec.auras.blood_shield.id ) ),
