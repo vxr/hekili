@@ -550,6 +550,12 @@ spec:RegisterAuras( {
         duration = 20,
         max_stack = 1,
     },
+    -- All damage taken reduced by $s1%.
+    survival_of_the_fittest = {
+        id = 264735,
+        duration = function() return 6.0 + 2 * talent.lone_survivor.rank end,
+        max_stack = 1,
+    },
     -- Building up to an Explosive Shot...
     sulfurlined_pockets = {
         id = 459830,
@@ -1004,6 +1010,7 @@ spec:RegisterAbilities( {
     fury_of_the_eagle = {
         id = 203415,
         cast = 4,
+        cast_while_moving = true,
         channeled = true,
         cooldown = 45,
         gcd = "spell",
@@ -1152,6 +1159,22 @@ spec:RegisterAbilities( {
         usable = function () return pet.alive or group, "requires a living pet or ally" end,
         handler = function ()
             applyBuff( "misdirection" )
+        end,
+    },
+
+    -- Reduces all damage you and your pet take by $s1% for $d.
+    survival_of_the_fittest = {
+        id = 264735,
+        cast = 0,
+        cooldown = function () return ( talent.lone_survivor.enabled and 150 or 180 ) * ( pvptalent.hunting_pack.enabled and 0.5 or 1 ) * ( legendary.call_of_the_wild.enabled and 0.75 or 1 ) * ( 1 - 0.075 * talent.born_to_be_wild.rank ) + ( conduit.cheetahs_vigor.mod * 0.001 ) end,
+        charges = function() return talent.padded_armor.enabled and ( ( talent.lone_survivor.enabled and 150 or 180 ) * ( pvptalent.hunting_pack.enabled and 0.5 or 1 ) * ( legendary.call_of_the_wild.enabled and 0.75 or 1 ) * ( 1 - 0.075 * talent.born_to_be_wild.rank ) + ( conduit.cheetahs_vigor.mod * 0.001 ) ) or nil end,
+        recharge = function() return talent.padded_armor.enabled and 2 or nil end,
+        gcd = "off",
+
+        startsCombat = false,
+
+        handler = function()
+            applyBuff( "survival_of_the_fittest" )
         end,
     },
 
