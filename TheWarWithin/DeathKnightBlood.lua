@@ -1190,6 +1190,14 @@ spec:RegisterStateExpr( "stationary_death_and_decay", function ()
     return ( settings.stationary_death_and_decay or false )
 end )
 
+spec:RegisterStateExpr( "melee_blood_boil", function ()
+    return ( settings.melee_blood_boil or false )
+end )
+
+spec:RegisterStateExpr( "melee_consumption", function ()
+    return ( settings.melee_consumption or false )
+end )
+
 spec:RegisterStateExpr( "save_blood_shield", function ()
     return ( settings.save_blood_shield or false )
 end )
@@ -1353,6 +1361,13 @@ spec:RegisterAbilities( {
             end
         end,
 
+        usable = function ()
+            if not melee_blood_boil or action.death_strike.in_range then
+                return true
+            end
+            return false
+        end,
+
         auras = {
             -- Conduit
             debilitating_malady = {
@@ -1457,6 +1472,13 @@ spec:RegisterAbilities( {
 
         talent = "consumption",
         startsCombat = true,
+
+        usable = function ()
+            if not melee_consumption or action.death_strike.in_range then
+                return true
+            end
+            return false
+        end,
 
         handler = function ()
             gain( 2, "runes" )
@@ -2313,6 +2335,20 @@ spec:RegisterSetting( "stationary_death_and_decay", true, {
     name = strformat( "Stationary %s", Hekili:GetSpellLinkWithTexture( spec.auras.death_and_decay.id ) ),
     desc = strformat( "If checked, the default priority (or any priority checking |cFFFFD100stationary_death_and_decay|r) will avoid using "
         .. "death and decay while moving.", Hekili:GetSpellLinkWithTexture( spec.auras.death_and_decay.id ) ),
+    type = "toggle",
+    width = "full"
+} )
+
+spec:RegisterSetting( "melee_blood_boil", true, {
+    name = strformat( "Melee %s", Hekili:GetSpellLinkWithTexture( spec.abilities.blood_boil.id ) ),
+    desc = strformat( "Require melee for %s", Hekili:GetSpellLinkWithTexture( spec.abilities.blood_boil.id ) ),
+    type = "toggle",
+    width = "full"
+} )
+
+spec:RegisterSetting( "melee_consumption", true, {
+    name = strformat( "Melee %s", Hekili:GetSpellLinkWithTexture( spec.abilities.consumption.id ) ),
+    desc = strformat( "Require melee for %s", Hekili:GetSpellLinkWithTexture( spec.abilities.consumption.id ) ),
     type = "toggle",
     width = "full"
 } )
