@@ -1626,6 +1626,10 @@ spec:RegisterAbilities( {
         -- This will override action.X.cost to avoid a non-zero return value, as APL compares damage/cost with Shred.
         cost = function () return max( 1, class.abilities.brutal_slash.spend ) end,
 
+        usable = function ()
+            return action.rake.in_range
+        end,
+
         handler = function ()
             gain( talent.berserk.enabled and buff.bs_inc.up and 2 or 1, "combo_points" )
             if buff.bs_inc.up and talent.berserk_frenzy.enabled then applyDebuff( "target", "frenzied_assault" ) end
@@ -2747,6 +2751,10 @@ spec:RegisterAbilities( {
                 applyBuff( "bt_thrash" )
                 check_bloodtalons()
             end
+        end,
+
+        usable = function ()
+            return action.rake.in_range
         end,
 
         copy = { "thrash", 106832 },
