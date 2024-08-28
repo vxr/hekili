@@ -5,6 +5,8 @@ actions+=/spear_hand_strike,if=target.debuff.casting.react
 actions+=/potion,if=buff.storm_earth_and_fire.up&(!talent.invoke_xuen|pet.xuen_the_white_tiger.active)|boss&fight_remains<=30
 # Enable PI if available
 actions+=/variable,name=has_external_pi,value=false
+actions+=/arcane_torrent,if=chi<1
+actions+=/fortifying_brew,if=incoming_damage_3s>=health.max*0.20
 # Use Trinkets
 actions+=/call_action_list,name=trinkets
 # Openers
