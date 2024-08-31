@@ -163,6 +163,7 @@ state.pet = {
         permanent = false,
     }
 }
+state.party = {}
 state.player = {
     lastcast = "none",
     lastgcd = "none",
@@ -2920,6 +2921,41 @@ do
     }
     ns.metatables.mt_pets = mt_pets
 end
+
+local mt_party = {
+    __index = function( t, k )
+        if k == "health" then
+            return 100
+        elseif string.sub(k, 1, 14) == "members_below_" then
+            local percent = tonumber(string.sub(k, 15))
+            if percent then
+                local count = 0
+                local numGroupMembers = GetNumGroupMembers()
+                if numGroupMembers == 0 then
+                    local health = UnitHealth("player")
+                    local maxHealth = UnitHealthMax("player")
+                    local healthPercent = health / maxHealth * 100
+                    if healthPercent < percent then
+                        return 1
+                    end
+                    return 0
+                end
+                for i = 1, numGroupMembers do
+                    local unit = "party"..i
+                    local health = UnitHealth(unit)
+                    local maxHealth = UnitHealthMax(unit)
+                    local healthPercent = health / maxHealth * 100
+                    if healthPercent < percent then
+                        count = count + 1
+                    end
+                end
+                return count
+            end
+            return 0
+        end
+    end,
+}
+ns.metatables.mt_party = mt_party
 
 
 -- TODO: This may require revision, since other code might change buffs w/o changing stance.
@@ -5741,6 +5777,7 @@ setmetatable( state.off_hand, mt_weapon_type )
 -- setmetatable( state.health, mt_resource )
 setmetatable( state.pet, mt_pets )
 setmetatable( state.pet.fake_pet, mt_default_pet )
+setmetatable( state.party, mt_party )
 setmetatable( state.prev, mt_prev )
 setmetatable( state.prev_gcd, mt_prev )
 setmetatable( state.prev_off_gcd, mt_prev )
