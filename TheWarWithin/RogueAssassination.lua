@@ -2183,6 +2183,13 @@ spec:RegisterAbilities( {
         startsCombat = true,
         cycle = function () return buff.deadly_poison.up and "deadly_poison_dot" or buff.amplifying_poison.up and "amplifying_poison_dot" or nil end,
 
+        usable = function()
+            if not action.mutilate.in_range then
+                return false
+            end
+            return true
+        end,
+
         handler = function ()
             gain( buff.clear_the_witnesses.up and 2 or 1, "combo_points" )
             removeBuff( "hidden_blades" )
