@@ -1794,6 +1794,9 @@ spec:RegisterAbilities( {
         form = "bear_form",
 
         usable = function ()
+            if settings.check_nearby and not action.maul.in_range then
+                return false, "not in melee range"
+            end
             if action.raze.spend > 0 and ( settings.maul_rage or 0 ) > 0 and rage.current - action.raze.spend < ( settings.maul_rage or 0 ) then return false, "not enough additional rage" end
             return true
         end,
@@ -2066,6 +2069,13 @@ spec:RegisterAbilities( {
 
         form = "bear_form",
 
+        usable = function ()
+            if settings.check_nearby and not action.maul.in_range then
+                return false, "not in melee range"
+            end
+            return true
+        end,
+
         copy = { "swipe", 213764 },
         bind = { "swipe_bear", "swipe_cat", "swipe" }
     },
@@ -2088,6 +2098,10 @@ spec:RegisterAbilities( {
 
         form = "bear_form",
         bind = "thrash",
+
+        usable = function ()
+            return not settings.check_nearby or action.maul.in_range
+        end,
 
         handler = function ()
             applyDebuff( "target", "thrash_bear", 15, debuff.thrash_bear.count + 1 )
@@ -2216,6 +2230,13 @@ spec:RegisterOptions( {
     potion = "spectral_agility",
 
     package = "Guardian",
+} )
+
+spec:RegisterSetting( "check_nearby", true, {
+    name = strformat( "Check nearby abilities for melee range of target" ),
+    desc = strformat( "If checked, abilities that would hit nearby enmeis also check for a melee range target." ),
+    type = "toggle",
+    width = "full",
 } )
 
 spec:RegisterSetting( "maul_rage", 20, {
