@@ -1002,6 +1002,17 @@ spec:RegisterAbilities( {
         end,
     },
 
+    rite_of_sanctification = {
+        id = 433568,
+        cast = 1.6,
+        gcd = "spell",
+        talent = "rite_of_sanctification",
+        nobuff = "rite_of_sanctification",
+        handler = function ()
+            applyBuff("rite_of_sanctification")
+        end,
+    },
+
     -- Talent: Hurls your shield at an enemy target, dealing 1,240 Holy damage, interrupting and silencing the non-Player target for 3 sec, and then jumping to 2 additional nearby enemies. Shields you for 8 sec, absorbing 25% as much damage as it dealt. Deals 167 additional damage to all enemies within 5 yards of each target hit.
     avengers_shield = {
         id = 31935,
@@ -1250,6 +1261,12 @@ spec:RegisterAbilities( {
         school = "holy",
 
         startsCombat = true,
+
+        usable = function ()
+            if not settings.stationary_consecration then return true end
+            if not moving and stationary_for > 0.5 then return true end
+            return false
+        end,
 
         handler = function ()
             applyBuff( "consecration" )
@@ -1708,7 +1725,11 @@ spec:RegisterAbilities( {
 
         startsCombat = true,
 
-        usable = function() return equipped.shield, "requires a shield" end,
+        usable = function()
+            if not equipped.shield then return false, "requires a shield" end
+            if not action.rebuke.in_range then return false, "not in melee range" end
+            return true
+        end,
 
         handler = function ()
             removeBuff( "bulwark_of_righteous_fury" )
@@ -1789,6 +1810,14 @@ spec:RegisterAbilities( {
 
         end,
     },
+} )
+
+
+spec:RegisterSetting( "stationary_consecration", true, {
+    name = strformat( "Stationary Consecration" ),
+    desc = strformat( "If checked, consecration will only be recommended when stationary" ),
+    type = "toggle",
+    width = "full",
 } )
 
 
