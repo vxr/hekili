@@ -1180,6 +1180,27 @@ spec:RegisterAbilities( {
         copy = { 116, 228597, "frostfire_bolt", 431044 }
     },
 
+    -- Talent: Steals a beneficial magic effect from the target. This effect lasts a maximum of 2 min.
+    spellsteal = {
+        id = 30449,
+        cast = 0,
+        cooldown = 0,
+        gcd = "spell",
+        school = "arcane",
+
+        spend = 0.21,
+        spendType = "mana",
+
+        talent = "spellsteal",
+        startsCombat = true,
+        debuff = "stealable_magic",
+
+        --handler = function ()
+        --    applyBuff( "time_warp" )
+        --    applyDebuff( "player", "temporal_displacement" )
+        --end,
+    },
+
     -- Launches an orb of swirling ice up to 40 yards forward which deals up to 5,687 Frost damage to all enemies it passes through. Deals reduced damage beyond 8 targets. Grants 1 charge of Fingers of Frost when it first damages an enemy. While Frozen Orb is active, you gain Fingers of Frost every 2 sec. Enemies damaged by the Frozen Orb are slowed by 40% for 3 sec.
     frozen_orb = {
         id = 84714,
