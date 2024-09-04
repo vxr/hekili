@@ -1139,6 +1139,13 @@ spec:RegisterAbilities( {
         -- 20231108: Deprecated; we use Blade Flurry more now.
         -- readyTime = function() return buff.blade_flurry.remains - gcd.execute end,
 
+        usable = function ()
+            if not target.within6 then
+                return false, "not within range of target"
+            end
+            return true
+        end,
+
         cp_gain = function() return talent.deft_maneuvers.enabled and true_active_enemies or 0 end,
         handler = function ()
             applyBuff( "blade_flurry" )
